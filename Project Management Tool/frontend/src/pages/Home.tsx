@@ -1,16 +1,12 @@
 import React from "react";
+import { Zap, Calendar, BarChart3, ArrowRight, PlayCircle } from "lucide-react";
+import type { FeatureProps } from "../interfaces";
 
-const FeatureCard = ({
-  title,
-  desc,
-  icon,
-}: {
-  title: string;
-  desc: string;
-  icon: string;
-}) => (
-  <div className="p-8 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-    <div className="text-3xl mb-4">{icon}</div>
+const FeatureCard = ({ title, desc, icon }: FeatureProps) => (
+  <div className="group p-8 bg-white rounded-2xl border border-gray-100 shadow-sm hover:border-blue-100 hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300">
+    <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600 mb-6 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+      {icon}
+    </div>
     <h3 className="text-xl font-bold text-gray-900 mb-2">{title}</h3>
     <p className="text-gray-600 leading-relaxed">{desc}</p>
   </div>
@@ -21,43 +17,58 @@ const Home: React.FC = () => {
     <div className="min-h-screen bg-white flex flex-col">
       <main className="flex-grow">
         {/* Hero Section */}
-        <section className="py-20 px-4 text-center max-w-4xl mx-auto">
-          <h1 className="text-5xl md:text-7xl font-extrabold text-gray-900 mb-6 tracking-tight">
-            Manage projects{" "}
-            <span className="text-blue-600">without the chaos.</span>
-          </h1>
-          <p className="text-xl text-gray-600 mb-10 leading-relaxed">
-            Cartify helps your team assign tasks, track deadlines, and hit
-            milestones in one beautiful, centralized workspace.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <button className="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all">
-              Create Your First Project
-            </button>
-            <button className="bg-white text-gray-700 border border-gray-200 px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-50 transition-all">
-              Watch Demo
-            </button>
+        <section className="relative py-24 px-4 overflow-hidden">
+          <div className="max-w-5xl mx-auto text-center relative z-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm font-medium mb-6">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+              </span>
+              Now with AI-powered tracking
+            </div>
+
+            <h1 className="text-5xl md:text-7xl font-extrabold text-gray-900 mb-8 tracking-tight">
+              Manage projects <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-500">
+                without the chaos.
+              </span>
+            </h1>
+
+            <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed">
+              Tasky is the project management tool built for speed. Assign
+              tasks, track deadlines, and visualize progress in one clean
+              workspace.
+            </p>
+
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
+              <button className="flex items-center justify-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-blue-700 hover:scale-105 transition-all shadow-lg shadow-blue-200">
+                Get Started Free <ArrowRight className="w-5 h-5" />
+              </button>
+              <button className="flex items-center justify-center gap-2 bg-white text-gray-700 border border-gray-200 px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-50 transition-all">
+                <PlayCircle className="w-5 h-5" /> Watch Demo
+              </button>
+            </div>
           </div>
         </section>
 
         {/* Feature Grid */}
-        <section className="bg-gray-50 py-24 px-4">
+        <section className="bg-gray-50/50 py-24 px-4 border-y border-gray-100">
           <div className="max-w-7xl mx-auto">
             <div className="grid md:grid-cols-3 gap-8">
               <FeatureCard
-                icon="🚀"
+                icon={<Zap className="w-6 h-6" />}
                 title="Rapid Assignment"
-                desc="Assign tasks to team members in seconds. Keep roles clear and accountability high."
+                desc="Instantly delegate tasks to your team with smart role management and clear ownership."
               />
               <FeatureCard
-                icon="📅"
-                title="Smart Deadlines"
-                desc="Visualize timelines and set milestones. We'll nudge you before things get overdue."
+                icon={<Calendar className="w-6 h-6" />}
+                title="Visual Deadlines"
+                desc="Never miss a milestone with our intuitive timeline view and automated reminder system."
               />
               <FeatureCard
-                icon="📈"
-                title="Progress Tracking"
-                desc="Real-time analytics on project health. See exactly how close you are to the finish line."
+                icon={<BarChart3 className="w-6 h-6" />}
+                title="Real-time Tracking"
+                desc="Get high-level overviews or granular details on how your project is progressing."
               />
             </div>
           </div>
