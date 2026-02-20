@@ -7,6 +7,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import ScrollToTop from "./components/ScrollToTop";
 import Project from "./pages/Project";
+import ProjectDetails from "./pages/ProjectDetails";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/projects" element={<Project />} />
+          <Route path="/projects/:projectId" element={<ProjectDetails />} />
         </Routes>
         <Footer />
       </BrowserRouter>

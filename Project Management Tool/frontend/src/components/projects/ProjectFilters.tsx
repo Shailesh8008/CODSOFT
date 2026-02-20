@@ -1,4 +1,5 @@
 import React from "react";
+import CustomSelect from "../CustomSelect";
 import type { ProjectStatus } from "./types";
 
 interface ProjectFiltersProps {
@@ -25,16 +26,16 @@ const ProjectFilters: React.FC<ProjectFiltersProps> = ({
           onChange={(event) => onSearchChange(event.target.value)}
         />
 
-        <select
-          className="w-full px-4 py-2.5 rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+        <CustomSelect
           value={statusFilter}
-          onChange={(event) => onStatusChange(event.target.value as "All" | ProjectStatus)}
-        >
-          <option value="All">All Statuses</option>
-          <option value="Not Started">Not Started</option>
-          <option value="In Progress">In Progress</option>
-          <option value="Completed">Completed</option>
-        </select>
+          onChange={(value) => onStatusChange(value as "All" | ProjectStatus)}
+          options={[
+            { value: "All", label: "All Statuses" },
+            { value: "Not Started", label: "Not Started" },
+            { value: "In Progress", label: "In Progress" },
+            { value: "Completed", label: "Completed" },
+          ]}
+        />
       </div>
     </section>
   );

@@ -1,1 +1,25 @@
 @import "tailwindcss";
+
+/* Minimalist Scrollbar */
+::-webkit-scrollbar {
+    width: 4px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--muted-foreground);
+    border-radius: 99px;
+    opacity: 0.5;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--foreground);
+}
+
+:root {
+    --muted-foreground: rgb(113, 113, 113);
+    --foreground: rgb(21, 99, 225);
+}

@@ -1,47 +1,25 @@
 import React, { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import ConfirmModal from "../components/ConfirmModal";
 import ProjectCard from "../components/projects/ProjectCard";
 import ProjectFilters from "../components/projects/ProjectFilters";
 import ProjectFormModal from "../components/projects/ProjectFormModal";
+import { calculateProjectStatus } from "../components/projects/projectUtils";
 import type { Project, ProjectInput, ProjectStatus } from "../components/projects/types";
-
-const initialProjects: Project[] = [
-  {
-    id: "p-1",
-    name: "Website Revamp",
-    description: "Refresh landing pages and improve performance for mobile users.",
-    deadline: "2026-03-10",
-    progress: 65,
-    teamMembers: ["Aarav", "Mia", "Noah"],
-    status: "In Progress",
-  },
-  {
-    id: "p-2",
-    name: "Client Onboarding Flow",
-    description: "Design and implement guided onboarding with progress tracking.",
-    deadline: "2026-02-28",
-    progress: 40,
-    teamMembers: ["Ethan", "Sophia"],
-    status: "In Progress",
-  },
-  {
-    id: "p-3",
-    name: "Internal Knowledge Base",
-    description: "Set up documentation structure and publish core engineering guides.",
-    deadline: "2026-04-05",
-    progress: 15,
-    teamMembers: ["Liam", "Zoe", "Aiden", "Riya"],
-    status: "Not Started",
-  },
-];
+import { useProjects } from "../hooks/useProjects";
 
 const ProjectPage: React.FC = () => {
-  const [projects, setProjects] = useState<Project[]>(initialProjects);
+  const navigate = useNavigate();
+  const { projects, createProject, updateProject, deleteProject } = useProjects();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"All" | ProjectStatus>("All");
+
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
   const [editingProject, setEditingProject] = useState<Project | null>(null);
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+
+  const [deletingProject, setDeletingProject] = useState<Project | null>(null);
 
   const filteredProjects = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
@@ -52,7 +30,8 @@ const ProjectPage: React.FC = () => {
         project.name.toLowerCase().includes(normalizedSearch) ||
         project.description.toLowerCase().includes(normalizedSearch);
 
-      const matchesStatus = statusFilter === "All" || project.status === statusFilter;
+      const derivedStatus = calculateProjectStatus(project.tasks);
+      const matchesStatus = statusFilter === "All" || derivedStatus === statusFilter;
 
       return matchesSearch && matchesStatus;
     });
@@ -72,13 +51,7 @@ const ProjectPage: React.FC = () => {
 
   const handleSubmitProject = (values: ProjectInput) => {
     if (formMode === "create") {
-      const newProject: Project = {
-        id: `p-${Date.now()}`,
-        ...values,
-      };
-
-      setProjects((previous) => [newProject, ...previous]);
-      setSelectedProject(newProject);
+      createProject(values);
       setIsFormOpen(false);
       return;
     }
@@ -87,30 +60,8 @@ const ProjectPage: React.FC = () => {
       return;
     }
 
-    const updatedProject: Project = {
-      id: editingProject.id,
-      ...values,
-    };
-
-    setProjects((previous) =>
-      previous.map((project) => (project.id === editingProject.id ? updatedProject : project)),
-    );
-    setSelectedProject((previous) => (previous?.id === editingProject.id ? updatedProject : previous));
+    updateProject(editingProject.id, values);
     setIsFormOpen(false);
-  };
-
-  const handleDeleteProject = (projectId: string) => {
-    const targetProject = projects.find((project) => project.id === projectId);
-    if (!targetProject) {
-      return;
-    }
-
-    if (!window.confirm(`Delete project "${targetProject.name}"?`)) {
-      return;
-    }
-
-    setProjects((previous) => previous.filter((project) => project.id !== projectId));
-    setSelectedProject((previous) => (previous?.id === projectId ? null : previous));
   };
 
   return (
@@ -123,7 +74,7 @@ const ProjectPage: React.FC = () => {
           </div>
           <button
             type="button"
-            className="px-5 py-2.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700"
+            className="px-5 py-2.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 cursor-pointer"
             onClick={openCreateModal}
           >
             Create New Project
@@ -137,51 +88,22 @@ const ProjectPage: React.FC = () => {
           onStatusChange={setStatusFilter}
         />
 
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-4">
-            {filteredProjects.length === 0 ? (
-              <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center text-gray-600">
-                No projects match your current search/filter.
-              </div>
-            ) : (
-              filteredProjects.map((project) => (
-                <ProjectCard
-                  key={project.id}
-                  project={project}
-                  onView={setSelectedProject}
-                  onEdit={openEditModal}
-                  onDelete={handleDeleteProject}
-                />
-              ))
-            )}
-          </div>
-
-          <aside className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm h-fit">
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">Project Details</h2>
-            {selectedProject ? (
-              <div className="space-y-3 text-sm text-gray-700">
-                <p>
-                  <span className="font-semibold text-gray-900">{selectedProject.name}</span>
-                </p>
-                <p>{selectedProject.description}</p>
-                <p>
-                  <span className="font-medium">Deadline:</span> {selectedProject.deadline}
-                </p>
-                <p>
-                  <span className="font-medium">Progress:</span> {selectedProject.progress}%
-                </p>
-                <p>
-                  <span className="font-medium">Status:</span> {selectedProject.status}
-                </p>
-                <p>
-                  <span className="font-medium">Team Members:</span>{" "}
-                  {selectedProject.teamMembers.join(", ") || "No members"}
-                </p>
-              </div>
-            ) : (
-              <p className="text-gray-600 text-sm">Click "View Details" on any project card.</p>
-            )}
-          </aside>
+        <section className="space-y-4">
+          {filteredProjects.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center text-gray-600">
+              No projects match your current search/filter.
+            </div>
+          ) : (
+            filteredProjects.map((project) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                onView={(projectId) => navigate(`/projects/${projectId}`)}
+                onEdit={openEditModal}
+                onDelete={setDeletingProject}
+              />
+            ))
+          )}
         </section>
       </div>
 
@@ -191,6 +113,22 @@ const ProjectPage: React.FC = () => {
         initialProject={editingProject}
         onClose={() => setIsFormOpen(false)}
         onSubmit={handleSubmitProject}
+      />
+
+      <ConfirmModal
+        isOpen={Boolean(deletingProject)}
+        title="Delete Project"
+        description={`Are you sure you want to delete "${deletingProject?.name ?? ""}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        onClose={() => setDeletingProject(null)}
+        onConfirm={() => {
+          if (!deletingProject) {
+            return;
+          }
+
+          deleteProject(deletingProject.id);
+          setDeletingProject(null);
+        }}
       />
     </main>
   );
