@@ -4,16 +4,22 @@ import Home from "./pages/Home";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Dashboard from "./pages/Dashboard";
+import ScrollToTop from "./components/ScrollToTop";
+import Project from "./pages/Project";
 
 function App() {
   return (
     <>
       <BrowserRouter>
+      <ScrollToTop />
         <Navbar />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/projects" element={<Project />} />
         </Routes>
         <Footer />
       </BrowserRouter>

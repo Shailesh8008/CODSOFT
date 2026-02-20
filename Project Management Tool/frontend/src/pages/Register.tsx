@@ -21,8 +21,6 @@ const Register: React.FC = () => {
   const [isPass, setIsPass] = useState(false);
   const [isChecked, setIsChecked] = useState(true);
 
-  const isValidEmail = (email: string) =>
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.id]: e.target.value });
     setError({ ...error, [e.target.id]: false, pass: false });

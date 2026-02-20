@@ -1,6 +1,7 @@
 import React from "react";
 import { Zap, Calendar, BarChart3, ArrowRight, PlayCircle } from "lucide-react";
 import type { FeatureProps } from "../interfaces";
+import { Link } from "react-router-dom";
 
 const FeatureCard = ({ title, desc, icon }: FeatureProps) => (
   <div className="group p-8 bg-white rounded-2xl border border-gray-100 shadow-sm hover:border-blue-100 hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300">
@@ -41,9 +42,9 @@ const Home: React.FC = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <button className="flex items-center justify-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-blue-700 hover:scale-105 transition-all shadow-lg shadow-blue-200">
+              <Link to={"/register"} className="flex items-center justify-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-blue-700 hover:scale-105 transition-all shadow-lg shadow-blue-200">
                 Get Started Free <ArrowRight className="w-5 h-5" />
-              </button>
+              </Link>
               <button className="flex items-center justify-center gap-2 bg-white text-gray-700 border border-gray-200 px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-50 transition-all">
                 <PlayCircle className="w-5 h-5" /> Watch Demo
               </button>
