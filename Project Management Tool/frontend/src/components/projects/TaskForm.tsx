@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import CustomSelect from "../CustomSelect";
 import type { ProjectTask, TaskInput, TaskStatus } from "./types";
 
@@ -17,25 +17,29 @@ const emptyState: TaskInput = {
   status: "Todo",
 };
 
+const buildInitialForm = (
+  mode: "create" | "edit",
+  initialTask: ProjectTask | null,
+  teamMembers: string[],
+): TaskInput => {
+  if (mode === "edit" && initialTask) {
+    return {
+      title: initialTask.title,
+      description: initialTask.description,
+      assignee: initialTask.assignee,
+      status: initialTask.status,
+    };
+  }
+
+  return {
+    ...emptyState,
+    assignee: teamMembers[0] ?? "",
+  };
+};
+
 const TaskForm: React.FC<TaskFormProps> = ({ mode, teamMembers, initialTask = null, onSubmit, onCancel }) => {
-  const [form, setForm] = useState<TaskInput>(emptyState);
-
-  useEffect(() => {
-    if (mode === "edit" && initialTask) {
-      setForm({
-        title: initialTask.title,
-        description: initialTask.description,
-        assignee: initialTask.assignee,
-        status: initialTask.status,
-      });
-      return;
-    }
-
-    setForm({
-      ...emptyState,
-      assignee: teamMembers[0] ?? "",
-    });
-  }, [mode, initialTask, teamMembers]);
+  const [form, setForm] = useState<TaskInput>(() => buildInitialForm(mode, initialTask, teamMembers));
+  const safeAssignee = teamMembers.includes(form.assignee) ? form.assignee : (teamMembers[0] ?? "");
 
   const updateField = <K extends keyof TaskInput>(field: K, value: TaskInput[K]) => {
     setForm((previous) => ({ ...previous, [field]: value }));
@@ -43,7 +47,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ mode, teamMembers, initialTask = nu
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    onSubmit(form);
+    onSubmit({ ...form, assignee: safeAssignee });
 
     if (mode === "create") {
       setForm({
@@ -66,7 +70,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ mode, teamMembers, initialTask = nu
         />
 
         <CustomSelect
-          value={form.assignee}
+          value={safeAssignee}
           onChange={(value) => updateField("assignee", value)}
           disabled={teamMembers.length === 0}
           placeholder="No team members"

@@ -108,6 +108,7 @@ const ProjectPage: React.FC = () => {
       </div>
 
       <ProjectFormModal
+        key={`${isFormOpen}-${formMode}-${editingProject?.id ?? "new"}`}
         isOpen={isFormOpen}
         mode={formMode}
         initialProject={editingProject}

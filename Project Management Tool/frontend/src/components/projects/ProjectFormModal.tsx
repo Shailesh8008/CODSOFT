@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Modal from "../Modal";
 import type { Project, ProjectInput } from "./types";
 
@@ -17,6 +17,22 @@ const emptyState: ProjectInput = {
   teamMembers: [],
 };
 
+const buildInitialForm = (
+  mode: "create" | "edit",
+  initialProject: Project | null,
+): ProjectInput => {
+  if (mode === "edit" && initialProject) {
+    return {
+      name: initialProject.name,
+      description: initialProject.description,
+      deadline: initialProject.deadline,
+      teamMembers: initialProject.teamMembers,
+    };
+  }
+
+  return emptyState;
+};
+
 const ProjectFormModal: React.FC<ProjectFormModalProps> = ({
   isOpen,
   mode,
@@ -24,28 +40,10 @@ const ProjectFormModal: React.FC<ProjectFormModalProps> = ({
   onClose,
   onSubmit,
 }) => {
-  const [form, setForm] = useState<ProjectInput>(emptyState);
-  const [teamMemberText, setTeamMemberText] = useState("");
-
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
-    if (mode === "edit" && initialProject) {
-      setForm({
-        name: initialProject.name,
-        description: initialProject.description,
-        deadline: initialProject.deadline,
-        teamMembers: initialProject.teamMembers,
-      });
-      setTeamMemberText(initialProject.teamMembers.join(", "));
-      return;
-    }
-
-    setForm(emptyState);
-    setTeamMemberText("");
-  }, [isOpen, mode, initialProject]);
+  const [form, setForm] = useState<ProjectInput>(() => buildInitialForm(mode, initialProject));
+  const [teamMemberText, setTeamMemberText] = useState(() =>
+    mode === "edit" && initialProject ? initialProject.teamMembers.join(", ") : "",
+  );
 
   const updateField = <K extends keyof ProjectInput>(field: K, value: ProjectInput[K]) => {
     setForm((previous) => ({ ...previous, [field]: value }));

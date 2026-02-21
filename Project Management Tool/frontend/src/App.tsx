@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import ScrollToTop from "./components/ScrollToTop";
 import Project from "./pages/Project";
 import ProjectDetails from "./pages/ProjectDetails";
+import Features from "./pages/Features";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/projects" element={<Project />} />
           <Route path="/projects/:projectId" element={<ProjectDetails />} />
+          <Route path="/features" element={<Features />} />
         </Routes>
         <Footer />
       </BrowserRouter>
