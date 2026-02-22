@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { Mail, Lock, ArrowRight } from "lucide-react";
 import AuthLayout from "../components/AuthLayout";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { useAuth } from "../context/AuthContext";
 
 const Login: React.FC = () => {
+  const { user, loading } = useAuth();
   const [isPass, setIsPass] = useState(false);
   const [error, setError] = useState({ email: false, pass: false });
   const [form, setForm] = useState({
@@ -23,6 +25,14 @@ const Login: React.FC = () => {
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
   };
+
+  if (loading) {
+    return null;
+  }
+
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   return (
     <AuthLayout

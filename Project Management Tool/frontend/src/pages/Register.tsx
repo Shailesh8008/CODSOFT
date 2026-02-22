@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { Mail, Lock, User, ArrowRight } from "lucide-react";
 import AuthLayout from "../components/AuthLayout";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { useAuth } from "../context/AuthContext";
 
 const Register: React.FC = () => {
+  const { user, loading } = useAuth();
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -29,6 +31,14 @@ const Register: React.FC = () => {
   const handleForm = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
   };
+
+  if (loading) {
+    return null;
+  }
+
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   return (
     <AuthLayout

@@ -20,6 +20,7 @@ import {
   TrendingUp,
   Users2,
   WandSparkles,
+  Play,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -124,12 +125,14 @@ const valuePillars: FeatureItem[] = [
   },
   {
     title: "Focused Work",
-    description: "Cut context switching with one workspace for tasks and updates.",
+    description:
+      "Cut context switching with one workspace for tasks and updates.",
     icon: <Target className="w-5 h-5" />,
   },
   {
     title: "Consistent Output",
-    description: "Ship more predictable releases with clear priorities and ownership.",
+    description:
+      "Ship more predictable releases with clear priorities and ownership.",
     icon: <TrendingUp className="w-5 h-5" />,
   },
 ];
@@ -152,7 +155,8 @@ const executionFlow: FeatureItem[] = [
   },
   {
     title: "Deliver",
-    description: "Close the loop with completion visibility and measurable progress.",
+    description:
+      "Close the loop with completion visibility and measurable progress.",
     icon: <CheckCircle2 className="w-5 h-5" />,
   },
 ];
@@ -236,12 +240,10 @@ const Features: React.FC = () => {
                 >
                   Start Free <ArrowRight className="w-4 h-4" />
                 </Link>
-                <Link
-                  to="/projects"
-                  className="inline-flex items-center justify-center px-7 py-3 rounded-xl border border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-100 transition-colors"
-                >
-                  Explore Projects
-                </Link>
+                <button className="inline-flex items-center justify-center px-7 py-3 rounded-xl border border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-100 transition-colors cursor-pointer">
+                  <Play className="w-4 h-4 mr-2" />
+                  Watch Demo
+                </button>
               </div>
             </div>
 
@@ -252,7 +254,9 @@ const Features: React.FC = () => {
             >
               <div className="rounded-3xl border border-white/70 bg-white/85 backdrop-blur-md shadow-xl p-6 md:p-7 card-glow">
                 <div className="flex items-center justify-between mb-5">
-                  <h2 className="font-semibold text-slate-900">Live Command Center</h2>
+                  <h2 className="font-semibold text-slate-900">
+                    Live Command Center
+                  </h2>
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 pulse-dot" />
                     Active
@@ -290,7 +294,9 @@ const Features: React.FC = () => {
 
       <section className="max-w-7xl mx-auto px-4 py-16">
         <div data-reveal className="mb-10 reveal-on-scroll">
-          <h2 className="text-3xl font-bold text-slate-900">Feature Ecosystem</h2>
+          <h2 className="text-3xl font-bold text-slate-900">
+            Feature Ecosystem
+          </h2>
           <p className="text-slate-600 mt-2">
             High-impact capabilities presented in a flexible, visual workspace.
           </p>
@@ -299,12 +305,14 @@ const Features: React.FC = () => {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 auto-rows-fr">
           <div
             data-reveal
-            className="reveal-on-scroll lg:col-span-2 lg:row-span-2 bg-gradient-to-br from-slate-900 to-blue-900 text-white rounded-3xl p-7 shadow-lg"
+            className="reveal-on-scroll lg:col-span-2 lg:row-span-2 bg-gradient-to-br from-slate-900 to-blue-900 text-white rounded-3xl p-7 shadow-lg space-y-10"
           >
             <div className="w-11 h-11 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center mb-5">
               <Component className="w-5 h-5" />
             </div>
-            <h3 className="text-2xl font-bold">Everything connects naturally</h3>
+            <h3 className="text-2xl font-bold">
+              Everything connects naturally
+            </h3>
             <p className="text-blue-100 mt-3 leading-relaxed">
               Projects, tasks, members, and progress all live in a single
               ecosystem. No duplicated updates. No lost context.
@@ -319,7 +327,9 @@ const Features: React.FC = () => {
                 >
                   <div className="text-cyan-200 mb-2">{pillar.icon}</div>
                   <p className="font-semibold text-sm">{pillar.title}</p>
-                  <p className="text-xs text-blue-100 mt-1">{pillar.description}</p>
+                  <p className="text-xs text-blue-100 mt-1">
+                    {pillar.description}
+                  </p>
                 </div>
               ))}
             </div>
@@ -340,7 +350,9 @@ const Features: React.FC = () => {
       <section className="bg-white border-y border-slate-200">
         <div className="max-w-7xl mx-auto px-4 py-16">
           <div data-reveal className="mb-10 reveal-on-scroll">
-            <h2 className="text-3xl font-bold text-slate-900">Workflow Intelligence</h2>
+            <h2 className="text-3xl font-bold text-slate-900">
+              Workflow Intelligence
+            </h2>
             <p className="text-slate-600 mt-2">
               Structured flow with visibility from kickoff to delivery.
             </p>
@@ -362,8 +374,12 @@ const Features: React.FC = () => {
                   <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider">
                     Step {index + 1}
                   </p>
-                  <h3 className="text-lg font-bold text-slate-900 mt-1">{step.title}</h3>
-                  <p className="text-slate-600 text-sm mt-2">{step.description}</p>
+                  <h3 className="text-lg font-bold text-slate-900 mt-1">
+                    {step.title}
+                  </h3>
+                  <p className="text-slate-600 text-sm mt-2">
+                    {step.description}
+                  </p>
                 </article>
               ))}
             </div>
@@ -379,7 +395,9 @@ const Features: React.FC = () => {
               >
                 <div className="text-cyan-300 mb-3">{feature.icon}</div>
                 <p className="font-semibold">{feature.title}</p>
-                <p className="text-slate-300 text-sm mt-1">{feature.description}</p>
+                <p className="text-slate-300 text-sm mt-1">
+                  {feature.description}
+                </p>
               </div>
             ))}
           </div>
@@ -397,7 +415,9 @@ const Features: React.FC = () => {
                 <Sparkles className="w-4 h-4" />
                 Creative UI, practical outcomes
               </div>
-              <h2 className="text-3xl font-bold mb-3">Ready to upgrade your team workflow?</h2>
+              <h2 className="text-3xl font-bold mb-3">
+                Ready to upgrade your team workflow?
+              </h2>
               <p className="text-blue-100 text-lg max-w-2xl">
                 Set up your workspace and start tracking meaningful progress in
                 minutes.
