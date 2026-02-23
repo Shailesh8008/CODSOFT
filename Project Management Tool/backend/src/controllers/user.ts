@@ -1,22 +1,27 @@
 import { Request, Response } from "express";
-import { JwtPayload } from "jsonwebtoken";
 
 const checkUser = (req: Request, res: Response) => {
-  res.json({ ok: true, user: req.user as JwtPayload });
+  if (!req.user) {
+    return res.status(401).json({ ok: false, message: "Unauthorized" });
+  }
+
+  return res.json({ ok: true, user: req.user });
 };
 
 const register = (req: Request, res: Response) => {
   res.json({ ok: true, message: "User registered successfully" });
-}
+};
 
-const login = (req: Request, res: Response) => {
-  res.json({ ok: true, message: "User logged in successfully" });
-}
+const login = async (req: Request, res: Response) => {
 
+    
+
+   
+};
 
 const userController = {
   checkUser,
   register,
-  login
+  login,
 };
 export default userController;
