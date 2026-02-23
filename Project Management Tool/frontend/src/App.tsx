@@ -10,6 +10,7 @@ import Project from "./pages/Project";
 import ProjectDetails from "./pages/ProjectDetails";
 import Features from "./pages/Features";
 import { useAuth } from "./context/AuthContext";
+import { Toaster } from "react-hot-toast";
 
 const ProtectedRoute = () => {
   const { user, loading } = useAuth();
@@ -60,6 +61,7 @@ function App() {
         </Routes>
         <Footer />
       </BrowserRouter>
+      <Toaster/>
     </>
   );
 }

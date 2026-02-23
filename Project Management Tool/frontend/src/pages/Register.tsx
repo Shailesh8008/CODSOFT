@@ -4,8 +4,11 @@ import AuthLayout from "../components/AuthLayout";
 import { Link, Navigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
+import { toast } from "react-hot-toast";
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const Register: React.FC = () => {
+  const [wait, setWait] = useState(false);
   const { user, loading } = useAuth();
   const [form, setForm] = useState({
     name: "",
@@ -22,14 +25,67 @@ const Register: React.FC = () => {
   });
   const [isPass, setIsPass] = useState(false);
   const [isChecked, setIsChecked] = useState(true);
+  const isValidEmail = (email: string) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.id]: e.target.value });
     setError({ ...error, [e.target.id]: false, pass: false });
   };
 
-  const handleForm = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleForm = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    setWait(true);
+    if (!form.name || !form.email || !form.pass1 || !form.pass2) {
+      setError({
+        ...error,
+        name: form.name ? false : true,
+        email: form.email ? false : true,
+        pass1: form.pass1 ? false : true,
+        pass2: form.pass2 ? false : true,
+      });
+      setWait(false);
+      return;
+    }
+
+    if (!isValidEmail(form.email)) {
+      toast.error("Please enter a valid email");
+      setWait(false);
+      return;
+    }
+
+    if (form.pass1 !== form.pass2) {
+      setError({ ...error, pass: true });
+      setWait(false);
+      return;
+    }
+
+    try {
+      const res = await fetch(`${backendUrl}/api/register`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        toast.error(data.message || "Some error occurred");
+        setWait(false);
+        return;
+      }
+      setForm({
+        name: "",
+        email: "",
+        pass1: "",
+        pass2: "",
+      });
+      window.location.href = "/";
+    } catch (error) {
+      setWait(false);
+      console.log("error: ", error);
+      toast.error("Something went wrong");
+    }
   };
 
   if (loading) {
@@ -64,7 +120,7 @@ const Register: React.FC = () => {
               onChange={handleChange}
               type="text"
               placeholder="Jim Carry"
-              className={`w-full pl-10 pr-4 py-3 rounded-xl border ${error.name ? "border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500" : "border-gray-200 focus:ring-blue-500 focus:border-transparent"} focus:ring-2 outline-none transition-all`}
+              className={`w-full pl-10 pr-4 py-3 rounded-xl border ${error.name ? "border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500" : "border-gray-200 focus:ring-blue-500"} focus:border-transparent focus:ring-2 outline-none transition-all`}
             />
           </div>
         </div>
@@ -92,8 +148,8 @@ const Register: React.FC = () => {
               className={`w-full pl-10 pr-4 py-3 rounded-xl border ${
                 error.email
                   ? "border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500"
-                  : "border-gray-200 focus:ring-blue-500 focus:border-transparent"
-              } focus:ring-2 outline-none transition-all`}
+                  : "border-gray-200 focus:ring-blue-500"
+              } focus:border-transparent focus:ring-2 outline-none transition-all`}
             />
           </div>
         </div>
@@ -108,7 +164,7 @@ const Register: React.FC = () => {
               <span className="text-red-600 ml-1">*Required</span>
             )}
             {error.pass && (
-              <span className="text-red-600 ml-1 text-xs">
+              <span className="text-red-600 ml-1 font-normal text-xs">
                 (Passwords do not match)
               </span>
             )}
@@ -126,8 +182,8 @@ const Register: React.FC = () => {
               className={`w-full pl-10 pr-12 py-3 rounded-xl border ${
                 error.pass1 || error.pass2
                   ? "border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500"
-                  : "border-gray-200 focus:ring-blue-500 focus:border-transparent"
-              } focus:ring-2 outline-none transition-all`}
+                  : "border-gray-200 focus:ring-blue-500"
+              } focus:border-transparent focus:ring-2 outline-none transition-all`}
             />
             <button
               type="button"
@@ -152,6 +208,11 @@ const Register: React.FC = () => {
             {error.pass2 && (
               <span className="text-red-600 ml-1">*Required</span>
             )}
+            {error.pass && (
+              <span className="text-red-600 ml-1 font-normal text-xs">
+                (Passwords do not match)
+              </span>
+            )}
           </label>
           <div className="relative group">
             <Lock
@@ -163,7 +224,7 @@ const Register: React.FC = () => {
               value={form.pass2}
               onChange={handleChange}
               placeholder="Confirm your password"
-              className={`w-full pl-10 pr-4 py-3 rounded-xl border ${error.pass2 || error.pass ? "border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500" : "border-gray-200 focus:ring-blue-500 focus:border-transparent"} focus:ring-2 outline-none transition-all`}
+              className={`w-full pl-10 pr-4 py-3 rounded-xl border ${error.pass2 || error.pass ? "border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500" : "border-gray-200 focus:ring-blue-500"} focus:border-transparent focus:ring-2 outline-none transition-all`}
             />
           </div>
         </div>
@@ -192,9 +253,43 @@ const Register: React.FC = () => {
           </label>
         </div>
 
-        <button className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-all flex items-center justify-center gap-2 group">
-          Create Account{" "}
-          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+        <button
+          type="submit"
+          disabled={wait}
+          className={`w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-all flex items-center justify-center gap-2 group ${
+            wait ? "opacity-75 cursor-not-allowed" : "cursor-pointer"
+          }`}
+        >
+          {wait ? (
+            <svg
+              className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+          ) : null}
+          {wait ? (
+            "Creating account..."
+          ) : (
+            <>
+              Create Account
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </>
+          )}
         </button>
 
         <p className="text-center text-gray-600 text-sm mt-4">
