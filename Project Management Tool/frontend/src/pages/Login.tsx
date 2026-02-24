@@ -1,12 +1,16 @@
 import React, { useState } from "react";
 import { Mail, Lock, ArrowRight } from "lucide-react";
 import AuthLayout from "../components/AuthLayout";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
+import toast from "react-hot-toast";
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const Login: React.FC = () => {
-  const { user, loading } = useAuth();
+  const [wait, setWait] = useState(false);
+  const { user, loading, setUser } = useAuth();
+  const navigate = useNavigate();
   const [isPass, setIsPass] = useState(false);
   const [error, setError] = useState({ email: false, pass: false });
   const [form, setForm] = useState({
@@ -22,8 +26,47 @@ const Login: React.FC = () => {
     });
   };
 
+  const isValidEmail = (email: string) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    setWait(true);
+    if (!form.email || !form.pass) {
+      setError({
+        email: form.email ? false : true,
+        pass: form.pass ? false : true,
+      });
+      setWait(false);
+      return;
+    }
+
+    if (!isValidEmail(form.email)) {
+      toast.error("Please enter a valid email");
+      setWait(false);
+      return;
+    }
+
+    try {
+      const res = await fetch(`${backendUrl}/api/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        toast.error(data.message);
+        setWait(false);
+        return;
+      }
+      setUser(data.user ?? null);
+      navigate("/dashboard", { replace: true });
+    } catch {
+      setWait(false);
+      toast.error("Something went wrong");
+    }
   };
 
   if (loading) {
@@ -114,9 +157,43 @@ const Login: React.FC = () => {
           </div>
         </div>
 
-        <button className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-all flex items-center justify-center gap-2 group cursor-pointer">
-          Sign In{" "}
-          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+        <button
+          type="submit"
+          disabled={wait}
+          className={`w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-all flex items-center justify-center gap-2 group cursor-pointer ${
+            wait ? "opacity-75 cursor-not-allowed" : "cursor-pointer"
+          }`}
+        >
+          {wait ? (
+            <svg
+              className="animate-spin -ml-1 mr-1 h-5 w-5 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+          ) : null}
+          {wait ? (
+            "Please wait..."
+          ) : (
+            <>
+              Sign In
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </>
+          )}
         </button>
 
         <p className="text-center text-gray-600 text-sm mt-6">

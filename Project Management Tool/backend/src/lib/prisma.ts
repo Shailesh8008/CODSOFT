@@ -9,7 +9,14 @@ if (!connectionString) {
   throw new Error("DATABASE_URL is not set");
 }
 
-const pool = new Pool({ connectionString });
+const isSupabaseConnection = connectionString.includes("supabase.co");
+
+const pool = new Pool({
+  connectionString,
+  connectionTimeoutMillis: 10_000,
+  idleTimeoutMillis: 30_000,
+  ssl: isSupabaseConnection ? { rejectUnauthorized: false } : undefined,
+});
 const adapter = new PrismaPg(pool);
 
 const prisma = new PrismaClient({ adapter });

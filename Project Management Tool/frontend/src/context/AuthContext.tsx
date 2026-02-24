@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import {
+  useCallback,
   createContext,
   useContext,
   useEffect,
@@ -19,33 +20,81 @@ type AuthContextValue = {
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
-
+const authStorageKey = "tasky-auth-user";
 const backendUrl = import.meta.env.VITE_BACKEND_URL ?? "";
 
+const getStoredUser = () => {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const stored = window.localStorage.getItem(authStorageKey);
+  if (!stored) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(stored) as AuthUser;
+  } catch {
+    window.localStorage.removeItem(authStorageKey);
+    return null;
+  }
+};
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(() => getStoredUser());
   const [loading, setLoading] = useState(true);
+
+  const setPersistedUser: Dispatch<SetStateAction<AuthUser | null>> =
+    useCallback((value) => {
+      setUser((currentUser) => {
+        const resolvedValue =
+          typeof value === "function"
+            ? (value as (prevState: AuthUser | null) => AuthUser | null)(
+                currentUser,
+              )
+            : value;
+
+        if (typeof window !== "undefined") {
+          if (resolvedValue) {
+            window.localStorage.setItem(
+              authStorageKey,
+              JSON.stringify(resolvedValue),
+            );
+          } else {
+            window.localStorage.removeItem(authStorageKey);
+          }
+        }
+
+        return resolvedValue;
+      });
+    }, []);
 
   useEffect(() => {
     let cancelled = false;
 
-    const loadUser = async () => {
+    const validateUser = async () => {
       try {
         const response = await fetch(`${backendUrl}/api/auth/user`, {
           credentials: "include",
         });
 
         if (!response.ok) {
-          throw new Error("Failed to load user");
+          throw new Error("Failed to validate user");
         }
 
-        const data = (await response.json()) as AuthUser;
+        const data = (await response.json()) as
+          | AuthUser
+          | { user?: AuthUser | null };
+        const nextUser =
+          data && typeof data === "object" && "user" in data ? data.user : data;
+
         if (!cancelled) {
-          setUser(data);
+          setPersistedUser(nextUser ?? null);
         }
       } catch {
         if (!cancelled) {
-          setUser(null);
+          setPersistedUser(null);
         }
       } finally {
         if (!cancelled) {
@@ -54,19 +103,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     };
 
-    loadUser();
+    validateUser();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [setPersistedUser]);
 
   const value = useMemo(
     () => ({
       user,
-      setUser,
+      setUser: setPersistedUser,
       loading,
     }),
-    [user, loading],
+    [user, loading, setPersistedUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
