@@ -7,6 +7,7 @@ import TaskList from "../components/projects/TaskList";
 import { calculateProjectProgress, calculateProjectStatus, findProjectById, formatDeadline } from "../components/projects/projectUtils";
 import type { ProjectTask, TaskInput } from "../components/projects/types";
 import { useProjects } from "../hooks/useProjects";
+import toast from "react-hot-toast";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL ?? "";
 
@@ -95,8 +96,35 @@ const ProjectDetails: React.FC = () => {
 
   const completedTasks = project.tasks.filter((task) => task.status === "Completed").length;
 
-  const handleAddTask = (values: TaskInput) => {
-    addTask(project.id, values);
+  const handleAddTask = async (values: TaskInput) => {
+    try {
+      const response = await fetch(`${backendUrl}/api/add-task`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          projectId: project.id,
+          ...values,
+        }),
+      });
+
+      const data = (await response.json().catch(() => null)) as {
+        ok?: boolean;
+        message?: string;
+      } | null;
+
+      if (!response.ok || data?.ok === false) {
+        toast.error(data?.message || `Failed to add task (HTTP ${response.status})`);
+        return;
+      }
+
+      addTask(project.id, values);
+      toast.success("Task added successfully");
+    } catch {
+      toast.error("Unable to connect to server");
+    }
   };
 
   const handleUpdateTask = (values: TaskInput) => {

@@ -13,6 +13,7 @@ export const initialProjects: Project[] = [
         title: "Build responsive hero section",
         description: "Implement desktop and mobile variants for the new homepage hero.",
         assignee: "Aarav",
+        deadline: "2026-03-04",
         status: "Completed",
       },
       {
@@ -20,6 +21,7 @@ export const initialProjects: Project[] = [
         title: "Optimize image pipeline",
         description: "Convert existing assets and lazy-load non-critical images.",
         assignee: "Mia",
+        deadline: "2026-03-08",
         status: "In Progress",
       },
       {
@@ -27,6 +29,7 @@ export const initialProjects: Project[] = [
         title: "Run Lighthouse audit",
         description: "Validate performance budgets and accessibility checks.",
         assignee: "Noah",
+        deadline: "2026-03-10",
         status: "Todo",
       },
     ],
@@ -43,6 +46,7 @@ export const initialProjects: Project[] = [
         title: "Wireframe onboarding steps",
         description: "Produce low-fidelity wireframes for first-time user setup.",
         assignee: "Sophia",
+        deadline: "2026-02-24",
         status: "Completed",
       },
       {
@@ -50,6 +54,7 @@ export const initialProjects: Project[] = [
         title: "Implement progress tracker",
         description: "Show step completion and remaining setup tasks.",
         assignee: "Ethan",
+        deadline: "2026-02-28",
         status: "In Progress",
       },
     ],
@@ -66,6 +71,7 @@ export const initialProjects: Project[] = [
         title: "Create docs templates",
         description: "Define shared templates for architecture and runbooks.",
         assignee: "Liam",
+        deadline: "2026-04-01",
         status: "Todo",
       },
     ],

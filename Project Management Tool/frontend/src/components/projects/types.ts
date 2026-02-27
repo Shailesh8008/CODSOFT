@@ -7,6 +7,7 @@ export interface ProjectTask {
   title: string;
   description: string;
   assignee: string;
+  deadline: string;
   status: TaskStatus;
 }
 
@@ -17,6 +18,7 @@ export interface Project {
   deadline: string;
   teamMembers: string[];
   tasks: ProjectTask[];
+  taskCount?: number;
 }
 
 export interface ProjectInput {
@@ -30,5 +32,6 @@ export interface TaskInput {
   title: string;
   description: string;
   assignee: string;
+  deadline: string;
   status: TaskStatus;
 }

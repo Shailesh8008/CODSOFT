@@ -1,6 +1,7 @@
 import React from "react";
 import CustomSelect from "../CustomSelect";
 import type { ProjectTask, TaskStatus } from "./types";
+import { formatDeadline } from "./projectUtils";
 
 interface TaskListProps {
   tasks: ProjectTask[];
@@ -41,6 +42,9 @@ const TaskList: React.FC<TaskListProps> = ({
               <p className="text-sm text-gray-600 mt-1">{task.description}</p>
               <p className="text-sm text-gray-700 mt-2">
                 <span className="font-medium">Assigned to:</span> {assigneeLabels?.[task.assignee] ?? task.assignee}
+              </p>
+              <p className="text-sm text-gray-700 mt-1">
+                <span className="font-medium">Deadline:</span> {task.deadline ? formatDeadline(task.deadline) : "N/A"}
               </p>
             </div>
 

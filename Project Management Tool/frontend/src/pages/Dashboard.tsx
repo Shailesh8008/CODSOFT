@@ -132,8 +132,6 @@ const Dashboard: React.FC = () => {
           return;
         }
 
-        console.log(data)
-
         setOverview({
           totalProjects: Number(data.overview.totalProjects ?? 0),
           totalTasks: Number(data.overview.totalTasks ?? 0),

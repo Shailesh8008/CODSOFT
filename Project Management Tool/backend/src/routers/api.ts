@@ -13,5 +13,6 @@ apiRouter.post("/api/register", userController.register);
 apiRouter.post("/api/login", userController.login);
 apiRouter.post("/api/logout", auth, userController.logout);
 apiRouter.post("/api/create-project", auth, userController.createProject);
+apiRouter.post("/api/add-task", auth, userController.addTask);
 
 export default apiRouter;

@@ -31,6 +31,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
     project.teamMembers
       .map((memberId) => teamMemberLabels?.[memberId] ?? memberId)
       .join(", ") || "No members";
+  const tasksCount = project.taskCount ?? project.tasks.length;
 
   const handleAction = async (action: "view" | "edit" | "delete") => {
     if (isWaiting) {
@@ -72,7 +73,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
           <span className="font-medium">Team:</span> {teamText}
         </p>
         <p className="text-gray-700">
-          <span className="font-medium">Tasks:</span> {project.tasks.length}
+          <span className="font-medium">Tasks:</span> {tasksCount}
         </p>
       </div>
 

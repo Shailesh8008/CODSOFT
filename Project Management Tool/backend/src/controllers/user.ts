@@ -180,6 +180,96 @@ const createProject = async (req: Request, res: Response) => {
   }
 };
 
+const addTask = async (req: Request, res: Response) => {
+  if (!req.user?.id || typeof req.user.id !== "string") {
+    return res.status(401).json({ ok: false, message: "Unauthorized" });
+  }
+
+  const { title, description, deadline, projectId, assignedToId } = req.body as {
+    title?: string;
+    description?: string;
+    deadline?: string;
+    projectId?: string;
+    assignedToId?: string;
+  };
+
+  if (!title || !projectId) {
+    return res.status(400).json({
+      ok: false,
+      message: "Task title and projectId are required",
+    });
+  }
+
+  try {
+    const project = await prisma.project.findFirst({
+      where: {
+        id: projectId,
+        OR: [{ ownerId: req.user.id }, { members: { some: { id: req.user.id } } }],
+      },
+      select: { id: true },
+    });
+
+    if (!project) {
+      return res.status(404).json({
+        ok: false,
+        message: "Project not found or you don't have access",
+      });
+    }
+
+    if (assignedToId) {
+      const assignee = await prisma.user.findFirst({
+        where: {
+          id: assignedToId,
+          OR: [
+            { id: req.user.id },
+            { ownedProjects: { some: { id: projectId } } },
+            { memberProjects: { some: { id: projectId } } },
+          ],
+        },
+        select: { id: true },
+      });
+
+      if (!assignee) {
+        return res.status(400).json({
+          ok: false,
+          message: "Assigned user is not part of this project",
+        });
+      }
+    }
+
+    const parsedDeadline = deadline ? new Date(deadline) : undefined;
+    if (parsedDeadline && Number.isNaN(parsedDeadline.getTime())) {
+      return res.status(400).json({
+        ok: false,
+        message: "Invalid deadline date",
+      });
+    }
+
+    const task = await prisma.task.create({
+      data: {
+        title,
+        description,
+        deadline: parsedDeadline,
+        projectId,
+        assignedToId,
+      },
+      include: {
+        project: { select: { id: true, name: true } },
+        assignedTo: { select: { id: true, name: true, email: true } },
+      },
+    });
+
+    return res
+      .status(201)
+      .json({ ok: true, message: "Task added successfully", task });
+  } catch (error) {
+    console.error("Error adding task:", error);
+    return res
+      .status(500)
+      .json({ ok: false, message: "Internal server error" });
+  }
+};
+
 const getDashboardOverview = async (req: Request, res: Response) => {
   if (!req.user?.id || typeof req.user.id !== "string") {
     return res.status(401).json({ ok: false, message: "Unauthorized" });
@@ -349,6 +439,7 @@ const userController = {
   login,
   logout,
   createProject,
+  addTask,
   getDashboardOverview,
   getUsers,
   getMyProjects,

@@ -15,6 +15,7 @@ const emptyState: TaskInput = {
   title: "",
   description: "",
   assignee: "",
+  deadline: "",
   status: "Todo",
 };
 
@@ -28,6 +29,7 @@ const buildInitialForm = (
       title: initialTask.title,
       description: initialTask.description,
       assignee: initialTask.assignee,
+      deadline: initialTask.deadline,
       status: initialTask.status,
     };
   }
@@ -47,6 +49,13 @@ const TaskForm: React.FC<TaskFormProps> = ({
   onCancel,
 }) => {
   const [form, setForm] = useState<TaskInput>(() => buildInitialForm(mode, initialTask, teamMembers));
+  const minDeadline = useMemo(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }, []);
   const fallbackAssignee = teamMembers[0] ?? "";
   const safeAssignee = teamMembers.includes(form.assignee)
     ? form.assignee
@@ -108,6 +117,14 @@ const TaskForm: React.FC<TaskFormProps> = ({
         className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
         value={form.description}
         onChange={(event) => updateField("description", event.target.value)}
+      />
+
+      <input
+        type="date"
+        min={minDeadline}
+        className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        value={form.deadline}
+        onChange={(event) => updateField("deadline", event.target.value)}
       />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
