@@ -8,6 +8,7 @@ import { calculateProjectProgress, calculateProjectStatus, findProjectById, form
 import type { ProjectTask, TaskInput } from "../components/projects/types";
 import { useProjects } from "../hooks/useProjects";
 import toast from "react-hot-toast";
+import { useAuth } from "../context/AuthContext";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL ?? "";
 
@@ -21,6 +22,7 @@ const ProjectDetails: React.FC = () => {
   const navigate = useNavigate();
   const { projectId = "" } = useParams();
   const { projects, addTask, updateTask, deleteTask, updateTaskStatus } = useProjects();
+  const { user } = useAuth();
   const [users, setUsers] = useState<UserSummary[]>([]);
 
   const project = useMemo(() => findProjectById(projects, projectId), [projects, projectId]);
@@ -95,6 +97,10 @@ const ProjectDetails: React.FC = () => {
   );
 
   const completedTasks = project.tasks.filter((task) => task.status === "Completed").length;
+  const userId = typeof user?.id === "string" ? user.id : "";
+  const canAddTask = !project.ownerId || project.ownerId === userId;
+  const canChangeTaskStatus = (task: ProjectTask) =>
+    canAddTask || task.assignee === userId;
 
   const handleAddTask = async (values: TaskInput) => {
     const payload = {
@@ -138,13 +144,47 @@ const ProjectDetails: React.FC = () => {
     }
   };
 
-  const handleUpdateTask = (values: TaskInput) => {
+  const handleUpdateTask = async (values: TaskInput) => {
     if (!editingTask) {
       return;
     }
 
-    updateTask(project.id, editingTask.id, values);
-    setEditingTask(null);
+    try {
+      const response = await fetch(`${backendUrl}/api/edit-task`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          taskId: editingTask.id,
+          projectId: project.id,
+          title: values.title,
+          description: values.description,
+          deadline: values.deadline,
+          status: values.status,
+          assignedToId: values.assignee || undefined,
+          assignedTo: values.assignee || undefined,
+          assignee: values.assignee || undefined,
+        }),
+      });
+
+      const data = (await response.json().catch(() => null)) as {
+        ok?: boolean;
+        message?: string;
+      } | null;
+
+      if (!response.ok || data?.ok === false) {
+        toast.error(data?.message || `Failed to update task (HTTP ${response.status})`);
+        return;
+      }
+
+      updateTask(project.id, editingTask.id, values);
+      setEditingTask(null);
+      toast.success("Task updated successfully");
+    } catch {
+      toast.error("Unable to connect to server");
+    }
   };
 
   return (
@@ -195,16 +235,18 @@ const ProjectDetails: React.FC = () => {
           </div>
         </section>
 
-        <section className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-          <h2 className="text-xl font-semibold text-gray-900">Add Task</h2>
-          <p className="text-sm text-gray-600 mt-1 mb-4">Create tasks and assign them to project members.</p>
-          <TaskForm
-            mode="create"
-            teamMembers={project.teamMembers}
-            teamMemberLabels={teamMemberLabels}
-            onSubmit={handleAddTask}
-          />
-        </section>
+        {canAddTask ? (
+          <section className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+            <h2 className="text-xl font-semibold text-gray-900">Add Task</h2>
+            <p className="text-sm text-gray-600 mt-1 mb-4">Create tasks and assign them to project members.</p>
+            <TaskForm
+              mode="create"
+              teamMembers={project.teamMembers}
+              teamMemberLabels={teamMemberLabels}
+              onSubmit={handleAddTask}
+            />
+          </section>
+        ) : null}
 
         <section className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Team Members</h2>
@@ -218,6 +260,8 @@ const ProjectDetails: React.FC = () => {
           <TaskList
             tasks={project.tasks}
             assigneeLabels={teamMemberLabels}
+            canManageTasks={canAddTask}
+            canChangeTaskStatus={canChangeTaskStatus}
             onEdit={setEditingTask}
             onDelete={setDeletingTask}
             onStatusChange={(taskId, nextStatus) => updateTaskStatus(project.id, taskId, nextStatus)}

@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import prisma from "../lib/prisma";
 import jwt from "jsonwebtoken";
-import { Prisma } from "@prisma/client";
+import { Prisma, TaskStatus } from "@prisma/client";
 
 const checkUser = (req: Request, res: Response) => {
   if (!req.user) {
@@ -358,6 +358,152 @@ const addTask = async (req: Request, res: Response) => {
   }
 };
 
+const normalizeTaskStatus = (
+  value: string | undefined,
+): TaskStatus | undefined => {
+  if (!value) {
+    return undefined;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "todo" || normalized === "to_do") {
+    return TaskStatus.TODO;
+  }
+  if (normalized === "in progress" || normalized === "in_progress") {
+    return TaskStatus.IN_PROGRESS;
+  }
+  if (normalized === "completed" || normalized === "done") {
+    return TaskStatus.DONE;
+  }
+
+  return undefined;
+};
+
+const editTask = async (req: Request, res: Response) => {
+  if (!req.user?.id || typeof req.user.id !== "string") {
+    return res.status(401).json({ ok: false, message: "Unauthorized" });
+  }
+
+  const { taskId, projectId, title, description, deadline, status, assignedToId, assignedTo, assignee } = req.body as {
+    taskId?: string;
+    projectId?: string;
+    title?: string;
+    description?: string;
+    deadline?: string;
+    status?: string;
+    assignedToId?: string;
+    assignedTo?: string;
+    assignee?: string;
+  };
+
+  const resolvedAssignedToId = [assignedToId, assignedTo, assignee].find(
+    (value): value is string =>
+      typeof value === "string" && value.trim().length > 0,
+  );
+
+  if (!taskId || !projectId || !title) {
+    return res.status(400).json({
+      ok: false,
+      message: "taskId, projectId, and title are required",
+    });
+  }
+
+  const parsedDeadline = deadline ? new Date(deadline) : null;
+  if (parsedDeadline && Number.isNaN(parsedDeadline.getTime())) {
+    return res.status(400).json({
+      ok: false,
+      message: "Invalid deadline date",
+    });
+  }
+
+  const normalizedStatus = normalizeTaskStatus(status);
+  if (status && !normalizedStatus) {
+    return res.status(400).json({
+      ok: false,
+      message: "Invalid task status",
+    });
+  }
+
+  try {
+    const project = await prisma.project.findFirst({
+      where: {
+        id: projectId,
+        OR: [{ ownerId: req.user.id }, { members: { some: { id: req.user.id } } }],
+      },
+      select: { id: true },
+    });
+
+    if (!project) {
+      return res.status(404).json({
+        ok: false,
+        message: "Project not found or you don't have access",
+      });
+    }
+
+    const existingTask = await prisma.task.findFirst({
+      where: {
+        id: taskId,
+        projectId,
+      },
+      select: { id: true },
+    });
+
+    if (!existingTask) {
+      return res.status(404).json({
+        ok: false,
+        message: "Task not found",
+      });
+    }
+
+    if (resolvedAssignedToId) {
+      const taskAssignee = await prisma.user.findFirst({
+        where: {
+          id: resolvedAssignedToId,
+          OR: [
+            { id: req.user.id },
+            { ownedProjects: { some: { id: projectId } } },
+            { memberProjects: { some: { id: projectId } } },
+          ],
+        },
+        select: { id: true },
+      });
+
+      if (!taskAssignee) {
+        return res.status(400).json({
+          ok: false,
+          message: "Assigned user is not part of this project",
+        });
+      }
+    }
+
+    const task = await prisma.task.update({
+      where: { id: taskId },
+      data: {
+        title,
+        description,
+        deadline: parsedDeadline,
+        assignedToId: resolvedAssignedToId,
+        status: normalizedStatus,
+      },
+      include: {
+        project: { select: { id: true, name: true } },
+        assignedTo: { select: { id: true, name: true, email: true } },
+      },
+    });
+
+    return res.json({
+      ok: true,
+      message: "Task updated successfully",
+      task,
+    });
+  } catch (error) {
+    console.error("Error editing task:", error);
+    return res
+      .status(500)
+      .json({ ok: false, message: "Internal server error" });
+  }
+};
+
 const getDashboardOverview = async (req: Request, res: Response) => {
   if (!req.user?.id || typeof req.user.id !== "string") {
     return res.status(401).json({ ok: false, message: "Unauthorized" });
@@ -367,43 +513,39 @@ const getDashboardOverview = async (req: Request, res: Response) => {
   const now = new Date();
 
   try {
-    const projects = await prisma.project.findMany({
-      where: {
-        OR: [{ ownerId: userId }, { members: { some: { id: userId } } }],
-      },
+    const ownedProjects = await prisma.project.findMany({
+      where: { ownerId: userId },
       select: { id: true, name: true, createdAt: true },
     });
 
-    const projectIds = projects.map((project) => project.id);
-
-    if (!projectIds.length) {
-      return res.json({
-        ok: true,
-        overview: {
-          totalProjects: 0,
-          totalTasks: 0,
-          overdueTasks: 0,
-          upcomingDeadlines: [],
-          recentActivities: [],
-        },
-      });
-    }
-
-    const [totalTasks, overdueTasks, upcomingDeadlines, recentTasks] =
+    const [memberProjects, totalTasks, overdueTasks, upcomingDeadlines, recentOwnedTasks, recentAssignedTasks] =
       await Promise.all([
+        prisma.project.findMany({
+          where: {
+            members: { some: { id: userId } },
+            NOT: { ownerId: userId },
+          },
+          orderBy: { updatedAt: "desc" },
+          take: 10,
+          select: {
+            id: true,
+            name: true,
+            updatedAt: true,
+          },
+        }),
         prisma.task.count({
-          where: { projectId: { in: projectIds } },
+          where: { project: { ownerId: userId } },
         }),
         prisma.task.count({
           where: {
-            projectId: { in: projectIds },
+            project: { ownerId: userId },
             status: { not: "DONE" },
             deadline: { lt: now },
           },
         }),
         prisma.project.findMany({
           where: {
-            id: { in: projectIds },
+            ownerId: userId,
             deadline: { gte: now },
           },
           orderBy: { deadline: "asc" },
@@ -415,7 +557,18 @@ const getDashboardOverview = async (req: Request, res: Response) => {
           },
         }),
         prisma.task.findMany({
-          where: { projectId: { in: projectIds } },
+          where: { project: { ownerId: userId } },
+          orderBy: { createdAt: "desc" },
+          take: 10,
+          select: {
+            id: true,
+            title: true,
+            createdAt: true,
+            project: { select: { id: true, name: true } },
+          },
+        }),
+        prisma.task.findMany({
+          where: { assignedToId: userId },
           orderBy: { createdAt: "desc" },
           take: 10,
           select: {
@@ -427,7 +580,7 @@ const getDashboardOverview = async (req: Request, res: Response) => {
         }),
       ]);
 
-    const recentProjectActivities = projects
+    const recentProjectActivities = ownedProjects
       .map((project) => ({
         id: project.id,
         type: "PROJECT_CREATED",
@@ -435,10 +588,17 @@ const getDashboardOverview = async (req: Request, res: Response) => {
         project: { id: project.id, name: project.name },
         date: project.createdAt,
       }))
-      .sort((a, b) => b.date.getTime() - a.date.getTime())
-      .slice(0, 10);
+      .sort((a, b) => b.date.getTime() - a.date.getTime());
 
-    const recentTaskActivities = recentTasks.map((task) => ({
+    const recentMemberProjectActivities = memberProjects.map((project) => ({
+      id: `member-${project.id}`,
+      type: "PROJECT_ADDED",
+      title: `Added to project: ${project.name}`,
+      project: { id: project.id, name: project.name },
+      date: project.updatedAt,
+    }));
+
+    const ownedTaskActivities = recentOwnedTasks.map((task) => ({
       id: task.id,
       type: "TASK_CREATED",
       title: `Task created: ${task.title}`,
@@ -446,9 +606,19 @@ const getDashboardOverview = async (req: Request, res: Response) => {
       date: task.createdAt,
     }));
 
+    const assignedTaskActivities = recentAssignedTasks.map((task) => ({
+      id: `assigned-${task.id}`,
+      type: "TASK_ASSIGNED",
+      title: `Task assigned: ${task.title}`,
+      project: task.project,
+      date: task.createdAt,
+    }));
+
     const recentActivities = [
       ...recentProjectActivities,
-      ...recentTaskActivities,
+      ...recentMemberProjectActivities,
+      ...ownedTaskActivities,
+      ...assignedTaskActivities,
     ]
       .sort((a, b) => b.date.getTime() - a.date.getTime())
       .slice(0, 10);
@@ -456,7 +626,7 @@ const getDashboardOverview = async (req: Request, res: Response) => {
     return res.json({
       ok: true,
       overview: {
-        totalProjects: projectIds.length,
+        totalProjects: ownedProjects.length,
         totalTasks,
         overdueTasks,
         upcomingDeadlines,
@@ -493,7 +663,12 @@ const getMyProjects = async (req: Request, res: Response) => {
 
   try {
     const projects = await prisma.project.findMany({
-      where: { ownerId: req.user.id },
+      where: {
+        OR: [
+          { ownerId: req.user.id },
+          { members: { some: { id: req.user.id } } },
+        ],
+      },
       orderBy: { createdAt: "desc" },
       include: {
         members: {
@@ -536,6 +711,7 @@ const userController = {
   createProject,
   editProject,
   addTask,
+  editTask,
   getDashboardOverview,
   getUsers,
   getMyProjects,

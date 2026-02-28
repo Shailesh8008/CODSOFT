@@ -6,6 +6,7 @@ const backendUrl = import.meta.env.VITE_BACKEND_URL ?? "";
 type RawProject = Partial<Project> & {
   _id?: string;
   id?: string;
+  ownerId?: string;
   name?: string;
   description?: string;
   deadline?: string;
@@ -119,6 +120,7 @@ const normalizeProject = (input: RawProject): Project | null => {
   const name = typeof input.name === "string" ? input.name : "";
   const description = typeof input.description === "string" ? input.description : "";
   const deadline = typeof input.deadline === "string" ? input.deadline : "";
+  const ownerId = typeof input.ownerId === "string" ? input.ownerId : undefined;
 
   if (!projectId || !name || !description || !deadline) {
     return null;
@@ -144,6 +146,7 @@ const normalizeProject = (input: RawProject): Project | null => {
     name,
     description,
     deadline,
+    ownerId,
     teamMembers,
     tasks,
     taskCount: countedTasks ?? tasks.length,

@@ -6,6 +6,8 @@ import { formatDeadline } from "./projectUtils";
 interface TaskListProps {
   tasks: ProjectTask[];
   assigneeLabels?: Record<string, string>;
+  canManageTasks?: boolean;
+  canChangeTaskStatus?: (task: ProjectTask) => boolean;
   onEdit: (task: ProjectTask) => void;
   onDelete: (task: ProjectTask) => void;
   onStatusChange: (taskId: string, nextStatus: TaskStatus) => void;
@@ -20,6 +22,8 @@ const statusClasses: Record<TaskStatus, string> = {
 const TaskList: React.FC<TaskListProps> = ({
   tasks,
   assigneeLabels,
+  canManageTasks = true,
+  canChangeTaskStatus,
   onEdit,
   onDelete,
   onStatusChange,
@@ -34,8 +38,11 @@ const TaskList: React.FC<TaskListProps> = ({
 
   return (
     <div className="space-y-3">
-      {tasks.map((task) => (
-        <article key={task.id} className="bg-gray-50 border border-gray-100 rounded-xl p-4">
+      {tasks.map((task) => {
+        const canUpdateStatus = canChangeTaskStatus ? canChangeTaskStatus(task) : true;
+
+        return (
+          <article key={task.id} className="bg-gray-50 border border-gray-100 rounded-xl p-4">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
             <div>
               <h3 className="font-semibold text-gray-900">{task.title}</h3>
@@ -58,6 +65,7 @@ const TaskList: React.FC<TaskListProps> = ({
               <CustomSelect
                 value={task.status}
                 onChange={(value) => onStatusChange(task.id, value as TaskStatus)}
+                disabled={!canUpdateStatus}
                 options={[
                   { value: "Todo", label: "Todo" },
                   { value: "In Progress", label: "In Progress" },
@@ -68,24 +76,29 @@ const TaskList: React.FC<TaskListProps> = ({
               />
             </div>
 
-            <button
-              type="button"
-              className="px-3 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 cursor-pointer"
-              onClick={() => onEdit(task)}
-            >
-              Edit
-            </button>
+            {canManageTasks ? (
+              <>
+                <button
+                  type="button"
+                  className="px-3 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 cursor-pointer"
+                  onClick={() => onEdit(task)}
+                >
+                  Edit
+                </button>
 
-            <button
-              type="button"
-              className="px-3 py-2 text-sm rounded-lg bg-red-600 text-white hover:bg-red-700 cursor-pointer"
-              onClick={() => onDelete(task)}
-            >
-              Delete
-            </button>
+                <button
+                  type="button"
+                  className="px-3 py-2 text-sm rounded-lg bg-red-600 text-white hover:bg-red-700 cursor-pointer"
+                  onClick={() => onDelete(task)}
+                >
+                  Delete
+                </button>
+              </>
+            ) : null}
           </div>
-        </article>
-      ))}
+          </article>
+        );
+      })}
     </div>
   );
 };

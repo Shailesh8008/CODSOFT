@@ -16,6 +16,7 @@ export interface Project {
   name: string;
   description: string;
   deadline: string;
+  ownerId?: string;
   teamMembers: string[];
   tasks: ProjectTask[];
   taskCount?: number;
