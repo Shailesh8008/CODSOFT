@@ -280,13 +280,41 @@ const ProjectPage: React.FC = () => {
         description={`Are you sure you want to delete "${deletingProject?.name ?? ""}"? This action cannot be undone.`}
         confirmLabel="Delete"
         onClose={() => setDeletingProject(null)}
-        onConfirm={() => {
+        onConfirm={async () => {
           if (!deletingProject) {
             return;
           }
 
-          deleteProject(deletingProject.id);
-          setDeletingProject(null);
+          try {
+            const response = await fetch(`${backendUrl}/api/delete-project`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+              body: JSON.stringify({
+                projectId: deletingProject.id,
+              }),
+            });
+
+            const data = (await response.json().catch(() => null)) as {
+              ok?: boolean;
+              message?: string;
+            } | null;
+
+            if (!response.ok || data?.ok === false) {
+              toast.error(
+                data?.message || `Failed to delete project (HTTP ${response.status})`,
+              );
+              return;
+            }
+
+            deleteProject(deletingProject.id);
+            setDeletingProject(null);
+            toast.success("Project deleted successfully");
+          } catch {
+            toast.error("Unable to connect to server");
+          }
         }}
       />
     </main>

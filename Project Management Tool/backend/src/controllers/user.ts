@@ -261,6 +261,60 @@ const editProject = async (req: Request, res: Response) => {
   }
 };
 
+const deleteProject = async (req: Request, res: Response) => {
+  if (!req.user?.id || typeof req.user.id !== "string") {
+    return res.status(401).json({ ok: false, message: "Unauthorized" });
+  }
+
+  const { projectId } = req.body as {
+    projectId?: string;
+  };
+
+  if (!projectId) {
+    return res.status(400).json({
+      ok: false,
+      message: "projectId is required",
+    });
+  }
+
+  try {
+    const project = await prisma.project.findFirst({
+      where: {
+        id: projectId,
+        ownerId: req.user.id,
+      },
+      select: { id: true },
+    });
+
+    if (!project) {
+      return res.status(404).json({
+        ok: false,
+        message: "Project not found or you don't have permission",
+      });
+    }
+
+    await prisma.$transaction([
+      prisma.task.deleteMany({
+        where: { projectId },
+      }),
+      prisma.project.delete({
+        where: { id: projectId },
+      }),
+    ]);
+
+    return res.json({
+      ok: true,
+      message: "Project deleted successfully",
+      projectId,
+    });
+  } catch (error) {
+    console.error("Error deleting project:", error);
+    return res
+      .status(500)
+      .json({ ok: false, message: "Internal server error" });
+  }
+};
+
 const addTask = async (req: Request, res: Response) => {
   if (!req.user?.id || typeof req.user.id !== "string") {
     return res.status(401).json({ ok: false, message: "Unauthorized" });
@@ -893,6 +947,7 @@ const userController = {
   logout,
   createProject,
   editProject,
+  deleteProject,
   addTask,
   editTask,
   deleteTask,
