@@ -2,6 +2,7 @@ import { Toaster } from "react-hot-toast";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
+import Collections from "./pages/Collections";
 import Home from "./pages/Home";
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
           <main>
             <Routes>
               <Route path="/" element={<Home />} />
+              <Route path="/collections" element={<Collections />} />
             </Routes>
           </main>
           <Footer />

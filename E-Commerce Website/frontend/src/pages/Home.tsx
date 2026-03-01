@@ -1,4 +1,4 @@
-
+import FeaturedProductGrid from "../components/FeaturedProductGrid";
 
 const categories = [
   { name: "Streetwear", items: "120+ items", color: "bg-amber-100" },
@@ -87,6 +87,7 @@ export default function Home() {
         </div>
       </section>
 
+      <FeaturedProductGrid />
 
       <section className="mt-16 grid gap-6 lg:grid-cols-3">
         {benefits.map((benefit) => (
