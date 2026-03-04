@@ -4,7 +4,7 @@ const navLinks = [
   { label: "Shop", to: "/" },
   { label: "Collections", to: "/collections" },
   { label: "Deals", to: "/" },
-  { label: "About", to: "/" },
+  { label: "About", to: "/about" },
 ];
 
 export default function Navbar() {
