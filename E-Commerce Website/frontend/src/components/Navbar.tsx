@@ -5,7 +5,7 @@ import LoginModal from "./LoginModal";
 import RegisterModal from "./RegisterModal";
 
 const navLinks = [
-  { label: "Shop", to: "/" },
+  { label: "Shop", to: "/shop" },
   { label: "Collections", to: "/collections" },
   { label: "Deals", to: "/deals" },
   { label: "About", to: "/about" },

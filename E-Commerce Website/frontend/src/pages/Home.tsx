@@ -1,4 +1,5 @@
 import FeaturedProductGrid from "../components/FeaturedProductGrid";
+import { useAppSelector } from "../store/hooks";
 
 const categories = [
   { name: "Streetwear", items: "120+ items", color: "bg-amber-100" },
@@ -38,6 +39,9 @@ const testimonials = [
 ];
 
 export default function Home() {
+  const products = useAppSelector((state) => state.products.items);
+  const productsStatus = useAppSelector((state) => state.products.status);
+
   return (
     <div className="mx-auto w-full max-w-7xl px-4 pb-12 pt-8 sm:px-6 lg:px-8">
       <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-rose-500 via-orange-500 to-amber-400 px-6 py-16 text-white sm:px-10">
@@ -70,7 +74,10 @@ export default function Home() {
           <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
             Shop by category
           </h2>
-          <a href="#" className="text-sm font-semibold text-slate-600 hover:text-slate-900">
+          <a
+            href="#"
+            className="text-sm font-semibold text-slate-600 hover:text-slate-900"
+          >
             View all
           </a>
         </div>
@@ -80,19 +87,26 @@ export default function Home() {
               key={category.name}
               className={`rounded-2xl p-6 ${category.color} transition hover:-translate-y-1`}
             >
-              <h3 className="text-lg font-semibold text-slate-900">{category.name}</h3>
+              <h3 className="text-lg font-semibold text-slate-900">
+                {category.name}
+              </h3>
               <p className="mt-2 text-sm text-slate-700">{category.items}</p>
             </article>
           ))}
         </div>
       </section>
 
-      <FeaturedProductGrid />
+      <FeaturedProductGrid
+        products={products}
+        isLoading={productsStatus === "loading" || productsStatus === "idle"}
+      />
 
       <section className="mt-16 grid gap-6 lg:grid-cols-3">
         {benefits.map((benefit) => (
           <article key={benefit.title} className="rounded-2xl bg-amber-50 p-6">
-            <h3 className="text-lg font-semibold text-slate-900">{benefit.title}</h3>
+            <h3 className="text-lg font-semibold text-slate-900">
+              {benefit.title}
+            </h3>
             <p className="mt-2 text-sm text-slate-600">{benefit.desc}</p>
           </article>
         ))}
@@ -122,9 +136,14 @@ export default function Home() {
         </h2>
         <div className="mt-6 grid gap-5 lg:grid-cols-3">
           {testimonials.map((testimonial) => (
-            <article key={testimonial.name} className="rounded-2xl border border-slate-200 p-6">
+            <article
+              key={testimonial.name}
+              className="rounded-2xl border border-slate-200 p-6"
+            >
               <p className="text-slate-700">"{testimonial.quote}"</p>
-              <p className="mt-4 text-sm font-semibold text-slate-900">{testimonial.name}</p>
+              <p className="mt-4 text-sm font-semibold text-slate-900">
+                {testimonial.name}
+              </p>
             </article>
           ))}
         </div>
@@ -133,7 +152,8 @@ export default function Home() {
       <section className="mt-16 rounded-3xl bg-gradient-to-r from-rose-500 via-orange-500 to-amber-400 px-6 py-12 text-center text-white sm:px-10">
         <h2 className="text-3xl font-bold tracking-tight">Stay in the loop</h2>
         <p className="mx-auto mt-3 max-w-2xl text-amber-50">
-          Be the first to know about launches, flash sales, and member-only offers.
+          Be the first to know about launches, flash sales, and member-only
+          offers.
         </p>
         <div className="mx-auto mt-6 flex max-w-xl flex-col gap-3 sm:flex-row">
           <input

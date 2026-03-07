@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Footer from "./components/Footer";
@@ -6,8 +7,19 @@ import About from "./pages/About";
 import Collections from "./pages/Collections";
 import Deals from "./pages/Deals";
 import Home from "./pages/Home";
+import { useAppDispatch, useAppSelector } from "./store/hooks";
+import { fetchProducts } from "./store/productsSlice";
 
 function App() {
+  const dispatch = useAppDispatch();
+  const productsStatus = useAppSelector((state) => state.products.status);
+
+  useEffect(() => {
+    if (productsStatus === "idle") {
+      void dispatch(fetchProducts());
+    }
+  }, [dispatch, productsStatus]);
+
   return (
     <>
       <BrowserRouter>

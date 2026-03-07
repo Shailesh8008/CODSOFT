@@ -18,9 +18,6 @@ export default function RegisterModal({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Create account">
-      <p className="mb-4 text-sm text-slate-600">
-        Register to track orders, save favorites, and get faster checkout.
-      </p>
 
       <form className="space-y-4" onSubmit={handleSubmit}>
         <div>
