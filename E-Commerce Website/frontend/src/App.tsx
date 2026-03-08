@@ -5,6 +5,7 @@ import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
 import About from "./pages/About";
 import Collections from "./pages/Collections";
+import Dashboard from "./pages/Dashboard";
 import Home from "./pages/Home";
 import MyOrders from "./pages/MyOrders";
 import Shop from "./pages/Shop";
@@ -53,6 +54,7 @@ function App() {
               <Route path="/shop" element={<Shop />} />
               <Route path="/collections" element={<Collections />} />
               <Route path="/about" element={<About />} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/my-orders" element={<MyOrders />} />
             </Routes>
           </main>

@@ -70,11 +70,6 @@ export default function Navbar() {
     setIsLogoutConfirmOpen(true);
   };
   const closeLogoutConfirm = () => setIsLogoutConfirmOpen(false);
-  const placeholderAction = (label: string) => {
-    closeUserMenu();
-    toast(`${label} will be added soon.`);
-  };
-
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
@@ -146,19 +141,19 @@ export default function Navbar() {
                   className="flex items-center gap-2 rounded-full border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-900 cursor-pointer"
                 >
                   <FiUser className="h-4 w-4" />
-                  <span className="hidden sm:inline">{user.name}</span>
+                  <span className="hidden sm:inline">User</span>
                 </button>
 
                 {isUserMenuOpen && (
                   <div className="absolute right-0 top-full mt-2 w-44 rounded-xl border border-slate-200 bg-white p-1 shadow-lg">
-                    <button
-                      type="button"
-                      onClick={() => placeholderAction("Dashboard")}
-                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-100 cursor-pointer"
+                    <Link
+                      to="/dashboard"
+                      onClick={closeUserMenu}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-100"
                     >
                       <FiGrid className="h-4 w-4" />
                       Dashboard
-                    </button>
+                    </Link>
                     <Link
                       to="/my-orders"
                       onClick={closeUserMenu}

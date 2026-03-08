@@ -71,9 +71,34 @@ function normalizePurchasedItems(items: unknown[]): PurchasedItem[] {
     .filter((entry): entry is PurchasedItem => entry !== null);
 }
 
-const checkUser = (req: Request, res: Response) => {
-  const user = req.user as MyJwtPayload | undefined;
-  return res.json({ ok: true, userId: user?.id });
+const checkUser = async (req: Request, res: Response) => {
+  try {
+    const authUser = req.user as MyJwtPayload | undefined;
+    const userId = authUser?.id;
+    if (!userId) {
+      return res.json({ ok: false, message: "Unauthorized" });
+    }
+
+    const userRecord = (await userModel.findById(userId).lean()) as Pick<
+      UserRecord,
+      "_id" | "fname" | "lname" | "email"
+    > | null;
+    if (!userRecord) {
+      return res.json({ ok: false, message: "User not found" });
+    }
+
+    const fullName = `${userRecord.fname}${userRecord.lname ? ` ${userRecord.lname}` : ""}`.trim();
+    return res.json({
+      ok: true,
+      user: {
+        id: userRecord._id.toString(),
+        name: fullName || userRecord.email,
+        email: userRecord.email,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({ ok: false, message: "Internal server error" });
+  }
 };
 
 const reg = async (
