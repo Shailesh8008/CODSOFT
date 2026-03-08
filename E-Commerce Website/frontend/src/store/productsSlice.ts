@@ -14,13 +14,19 @@ export type Product = {
 type ProductsState = {
   items: Product[];
   status: "idle" | "loading" | "succeeded" | "failed";
+  featuredItems: Product[];
+  featuredStatus: "idle" | "loading" | "succeeded" | "failed";
   error: string | null;
+  featuredError: string | null;
 };
 
 const initialState: ProductsState = {
   items: [],
   status: "idle",
+  featuredItems: [],
+  featuredStatus: "idle",
   error: null,
+  featuredError: null,
 };
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -157,6 +163,32 @@ export const fetchProducts = createAsyncThunk(
   },
 );
 
+export const fetchFeaturedProducts = createAsyncThunk(
+  "products/fetchFeaturedProducts",
+  async () => {
+    const backendUrl =
+      (import.meta.env.VITE_BACKEND_URL as string | undefined)?.trim() ?? "";
+    const endpoint = `${backendUrl.replace(/\/$/, "")}/api/featured-products`;
+
+    const response = await fetch(endpoint);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch featured products (${response.status})`);
+    }
+
+    const payload: unknown = await response.json();
+    const body = asRecord(payload);
+    if (body && body.ok === false) {
+      const message = readString(body.message);
+      throw new Error(message ?? "Unable to load featured products.");
+    }
+
+    const rows = extractProductArray(payload);
+    return rows
+      .map((row, index) => normalizeProduct(row, index))
+      .filter((product): product is Product => product !== null);
+  },
+);
+
 const productsSlice = createSlice({
   name: "products",
   initialState,
@@ -174,6 +206,18 @@ const productsSlice = createSlice({
       .addCase(fetchProducts.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message ?? "Unable to load products.";
+      })
+      .addCase(fetchFeaturedProducts.pending, (state) => {
+        state.featuredStatus = "loading";
+        state.featuredError = null;
+      })
+      .addCase(fetchFeaturedProducts.fulfilled, (state, action) => {
+        state.featuredStatus = "succeeded";
+        state.featuredItems = action.payload;
+      })
+      .addCase(fetchFeaturedProducts.rejected, (state, action) => {
+        state.featuredStatus = "failed";
+        state.featuredError = action.error.message ?? "Unable to load featured products.";
       });
   },
 });

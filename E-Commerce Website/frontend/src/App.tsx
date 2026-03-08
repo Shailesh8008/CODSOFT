@@ -16,7 +16,7 @@ import AdminQueries from "./pages/admin/AdminQueries";
 import { useAppDispatch, useAppSelector } from "./store/hooks";
 import { fetchCurrentUser } from "./store/authSlice";
 import { clearCart, fetchUserCart } from "./store/cartSlice";
-import { fetchProducts } from "./store/productsSlice";
+import { fetchFeaturedProducts, fetchProducts } from "./store/productsSlice";
 
 function StorefrontLayout() {
   return (
@@ -35,6 +35,7 @@ function App() {
   const authStatus = useAppSelector((state) => state.auth.status);
   const user = useAppSelector((state) => state.auth.user);
   const productsStatus = useAppSelector((state) => state.products.status);
+  const featuredProductsStatus = useAppSelector((state) => state.products.featuredStatus);
 
   useEffect(() => {
     if (authStatus === "idle") {
@@ -47,6 +48,12 @@ function App() {
       void dispatch(fetchProducts());
     }
   }, [dispatch, productsStatus]);
+
+  useEffect(() => {
+    if (featuredProductsStatus === "idle") {
+      void dispatch(fetchFeaturedProducts());
+    }
+  }, [dispatch, featuredProductsStatus]);
 
   useEffect(() => {
     if (authStatus === "loading") {

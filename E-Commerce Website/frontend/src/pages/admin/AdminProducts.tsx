@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import toast from "react-hot-toast";
 
 type ProductRecord = {
@@ -8,6 +8,7 @@ type ProductRecord = {
   category: string;
   status: string;
   pimage: string;
+  featured: boolean;
 };
 
 function backendBaseUrl(): string {
@@ -31,6 +32,7 @@ export default function AdminProducts() {
     pname: "",
     price: "",
     category: "",
+    featured: false,
   });
   const [file, setFile] = useState<File | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -40,7 +42,14 @@ export default function AdminProducts() {
     price: "",
     category: "",
     status: "In Stock",
+    featured: false,
   });
+
+  const featuredCount = useMemo(
+    () => products.filter((product) => product.featured).length,
+    [products],
+  );
+  const editingProduct = products.find((product) => product.id === editingId) ?? null;
 
   const loadProducts = async () => {
     setLoading(true);
@@ -63,6 +72,7 @@ export default function AdminProducts() {
               category: typeof rec.category === "string" ? rec.category : "",
               status: typeof rec.status === "string" ? rec.status : "",
               pimage: typeof rec.pimage === "string" ? rec.pimage : "",
+              featured: rec.featured === true,
             };
           })
           .filter((entry): entry is ProductRecord => entry !== null),
@@ -84,6 +94,10 @@ export default function AdminProducts() {
       toast.error("All fields are required");
       return;
     }
+    if (form.featured && featuredCount >= 4) {
+      toast.error("Maximum 4 featured products allowed");
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -91,6 +105,7 @@ export default function AdminProducts() {
       body.append("pname", form.pname.trim());
       body.append("price", form.price.trim());
       body.append("category", form.category.trim());
+      body.append("featured", String(form.featured));
       body.append("pimage", file);
 
       const response = await fetch(`${backendBaseUrl()}/api/addproduct`, {
@@ -106,7 +121,7 @@ export default function AdminProducts() {
       }
 
       toast.success(typeof root.message === "string" ? root.message : "Product added");
-      setForm({ pname: "", price: "", category: "" });
+      setForm({ pname: "", price: "", category: "", featured: false });
       setFile(null);
       await loadProducts();
     } catch (_error) {
@@ -124,6 +139,7 @@ export default function AdminProducts() {
       price: String(product.price),
       category: product.category,
       status: product.status || "In Stock",
+      featured: product.featured,
     });
   };
 
@@ -135,6 +151,7 @@ export default function AdminProducts() {
       price: "",
       category: "",
       status: "In Stock",
+      featured: false,
     });
   };
 
@@ -147,6 +164,14 @@ export default function AdminProducts() {
       toast.error("All fields are required");
       return;
     }
+    if (
+      editForm.featured &&
+      !editingProduct?.featured &&
+      featuredCount >= 4
+    ) {
+      toast.error("Maximum 4 featured products allowed");
+      return;
+    }
 
     setSavingEdit(true);
     try {
@@ -155,6 +180,7 @@ export default function AdminProducts() {
       body.append("price", String(Number(editForm.price)));
       body.append("category", editForm.category.trim());
       body.append("status", editForm.status);
+      body.append("featured", String(editForm.featured));
       if (editFile) {
         body.append("pimage", editFile);
       }
@@ -204,6 +230,9 @@ export default function AdminProducts() {
     <div>
       <h2 className="text-2xl font-bold tracking-tight">Manage Products</h2>
       <p className="mt-1 text-sm text-slate-600">Add new items and manage current inventory.</p>
+      <p className="mt-1 text-xs text-slate-500">
+        Featured products: {featuredCount}/4
+      </p>
 
       <form onSubmit={handleAdd} className="mt-5 grid gap-3 rounded-2xl border border-slate-200 p-4 sm:grid-cols-2">
         <input
@@ -229,6 +258,15 @@ export default function AdminProducts() {
           onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
           className="rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
         />
+        <label className="inline-flex items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-sm">
+          <input
+            type="checkbox"
+            checked={form.featured}
+            disabled={!form.featured && featuredCount >= 4}
+            onChange={(e) => setForm((prev) => ({ ...prev, featured: e.target.checked }))}
+          />
+          Add to featured products
+        </label>
         <input
           type="file"
           accept="image/*"
@@ -280,6 +318,15 @@ export default function AdminProducts() {
             <option value="In Stock">In Stock</option>
             <option value="Out of Stock">Out of Stock</option>
           </select>
+          <label className="inline-flex items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-sm">
+            <input
+              type="checkbox"
+              checked={editForm.featured}
+              disabled={!editForm.featured && !editingProduct?.featured && featuredCount >= 4}
+              onChange={(e) => setEditForm((prev) => ({ ...prev, featured: e.target.checked }))}
+            />
+            Featured product
+          </label>
           <input
             type="file"
             accept="image/*"
@@ -316,6 +363,7 @@ export default function AdminProducts() {
                 <th className="px-3 py-2">Price</th>
                 <th className="px-3 py-2">Category</th>
                 <th className="px-3 py-2">Status</th>
+                <th className="px-3 py-2">Featured</th>
                 <th className="px-3 py-2">Action</th>
               </tr>
             </thead>
@@ -335,6 +383,17 @@ export default function AdminProducts() {
                   <td className="px-3 py-2">₹{product.price}</td>
                   <td className="px-3 py-2">{product.category}</td>
                   <td className="px-3 py-2">{product.status}</td>
+                  <td className="px-3 py-2">
+                    <span
+                      className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                        product.featured
+                          ? "bg-emerald-100 text-emerald-700"
+                          : "bg-slate-100 text-slate-600"
+                      }`}
+                    >
+                      {product.featured ? "Yes" : "No"}
+                    </span>
+                  </td>
                   <td className="px-3 py-2">
                     <button
                       type="button"

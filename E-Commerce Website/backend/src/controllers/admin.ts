@@ -23,14 +23,26 @@ const addproduct = async (
     Request<
       unknown,
       unknown,
-      { pname?: string; price?: number; category?: string }
+      { pname?: string; price?: number; category?: string; featured?: string | boolean }
     >,
   res: Response,
 ) => {
   try {
-    const { pname, price, category } = req.body;
+    const { pname, price, category, featured } = req.body;
     if (!pname || !price || !category || !req.file) {
       return res.json({ ok: false, message: "All fields are required!" });
+    }
+
+    const featuredValue =
+      featured === true || featured === "true" || featured === "on";
+    if (featuredValue) {
+      const featuredCount = await productModel.countDocuments({ featured: true });
+      if (featuredCount >= 4) {
+        return res.json({
+          ok: false,
+          message: "Maximum 4 featured products allowed",
+        });
+      }
     }
 
     const { buffer, originalname } = req.file;
@@ -46,6 +58,7 @@ const addproduct = async (
       category,
       status: "In Stock",
       pimage: uploadImage.url,
+      featured: featuredValue,
     });
     await record.save();
     return res.json({ ok: true, message: "Product added successfully" });
@@ -60,6 +73,15 @@ const getProducts = async (_req: Request, res: Response) => {
     if (!data) {
       return res.json({ ok: false, message: "Cannot find any product" });
     }
+    return res.json({ ok: true, data });
+  } catch (error) {
+    return res.json({ ok: false, message: "Internal server error" });
+  }
+};
+
+const getFeaturedProducts = async (_req: Request, res: Response) => {
+  try {
+    const data = await productModel.find({ featured: true }).limit(4);
     return res.json({ ok: true, data });
   } catch (error) {
     return res.json({ ok: false, message: "Internal server error" });
@@ -95,16 +117,38 @@ const editProduct = async (
     Request<
       { pid: string },
       unknown,
-      { pname?: string; price?: string | number; category?: string; status?: string }
+      {
+        pname?: string;
+        price?: string | number;
+        category?: string;
+        status?: string;
+        featured?: string | boolean;
+      }
     >,
   res: Response,
 ) => {
   try {
     const { pid } = req.params;
-    const { pname, price, category, status } = req.body;
+    const { pname, price, category, status, featured } = req.body;
     const priceValue = typeof price === "string" ? Number(price) : price;
     if (!pname || !category || !status || !priceValue || Number.isNaN(priceValue)) {
       return res.json({ ok: false, message: "All fields are required" });
+    }
+    const featuredValue =
+      featured === true || featured === "true" || featured === "on";
+    const existingProduct = await productModel.findById(pid).lean();
+    if (!existingProduct) {
+      return res.json({ ok: false, message: "Cannot find product" });
+    }
+    const wasFeatured = existingProduct.featured === true;
+    if (featuredValue && !wasFeatured) {
+      const featuredCount = await productModel.countDocuments({ featured: true });
+      if (featuredCount >= 4) {
+        return res.json({
+          ok: false,
+          message: "Maximum 4 featured products allowed",
+        });
+      }
     }
 
     const updatePayload: {
@@ -112,12 +156,14 @@ const editProduct = async (
       price: number;
       category: string;
       status: string;
+      featured: boolean;
       pimage?: string;
     } = {
       pname,
       price: priceValue,
       category,
       status,
+      featured: featuredValue,
     };
 
     if (req.file) {
@@ -243,6 +289,7 @@ const adminController = {
   checkAdmin,
   addproduct,
   getProducts,
+  getFeaturedProducts,
   deleteProduct,
   getOneProduct,
   editProduct,

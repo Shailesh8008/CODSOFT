@@ -31,6 +31,7 @@ apiRouter.post(
   adminController.editProduct,
 );
 apiRouter.get("/api/getproducts", adminController.getProducts);
+apiRouter.get("/api/featured-products", adminController.getFeaturedProducts);
 apiRouter.get("/api/getproduct/:pid", adminController.getOneProduct);
 apiRouter.get("/api/getqueries", adminController.getQueries);
 apiRouter.get("/api/getquerydetails/:qid", adminController.getOneQuery);

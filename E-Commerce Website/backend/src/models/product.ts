@@ -6,6 +6,7 @@ const productSchema = new Schema({
   category: { type: String, require: true },
   status: { type: String, require: true },
   pimage: { type: String },
+  featured: { type: Boolean, default: false },
 });
 
 export default model("products", productSchema);
