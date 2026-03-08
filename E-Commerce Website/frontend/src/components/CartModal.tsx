@@ -4,6 +4,8 @@ import {
   incrementQuantity,
   removeFromCart,
 } from "../store/cartSlice";
+import { useState } from "react";
+import toast from "react-hot-toast";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import Modal from "./Modal";
 
@@ -15,6 +17,65 @@ type CartModalProps = {
   onLoginClick: () => void;
 };
 
+type RazorpaySuccessResponse = {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+};
+
+type RazorpayInstance = {
+  open: () => void;
+};
+
+type RazorpayOptions = {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  order_id: string;
+  prefill: {
+    name: string;
+    email: string;
+  };
+  handler: (response: RazorpaySuccessResponse) => void | Promise<void>;
+  modal?: {
+    ondismiss?: () => void;
+  };
+};
+
+type RazorpayConstructor = new (options: RazorpayOptions) => RazorpayInstance;
+
+type WindowWithRazorpay = Window & {
+  Razorpay?: RazorpayConstructor;
+};
+
+let razorpayScriptPromise: Promise<boolean> | null = null;
+
+function loadRazorpayScript(): Promise<boolean> {
+  if (typeof window === "undefined") {
+    return Promise.resolve(false);
+  }
+
+  if ((window as WindowWithRazorpay).Razorpay) {
+    return Promise.resolve(true);
+  }
+
+  if (razorpayScriptPromise) {
+    return razorpayScriptPromise;
+  }
+
+  razorpayScriptPromise = new Promise((resolve) => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+
+  return razorpayScriptPromise;
+}
+
 export default function CartModal({
   isOpen,
   isLoggedIn,
@@ -23,7 +84,9 @@ export default function CartModal({
   onLoginClick,
 }: CartModalProps) {
   const dispatch = useAppDispatch();
+  const user = useAppSelector((state) => state.auth.user);
   const cartItems = useAppSelector((state) => state.cart.items);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0,
@@ -35,6 +98,162 @@ export default function CartModal({
       currency: "USD",
       maximumFractionDigits: 2,
     }).format(value);
+
+  const backendUrl =
+    (import.meta.env.VITE_BACKEND_URL as string | undefined)?.trim().replace(/\/$/, "") ?? "";
+  const razorpayKey = (import.meta.env.VITE_RAZORPAY_ID as string | undefined)?.trim() ?? "";
+
+  const handleCheckout = async () => {
+    if (isCheckingOut) {
+      return;
+    }
+    if (!isLoggedIn) {
+      toast("Please login first", { icon: "ℹ️" });
+      onLoginClick();
+      return;
+    }
+    if (subtotal <= 0) {
+      toast.error("Your cart is empty.");
+      return;
+    }
+    if (!backendUrl) {
+      toast.error("Backend URL is missing.");
+      return;
+    }
+    if (!razorpayKey) {
+      toast.error("Razorpay key is missing.");
+      return;
+    }
+
+    setIsCheckingOut(true);
+    const amount = Number(subtotal.toFixed(2));
+
+    try {
+      const sdkReady = await loadRazorpayScript();
+      if (!sdkReady) {
+        throw new Error("Unable to load Razorpay.");
+      }
+
+      const checkoutResponse = await fetch(`${backendUrl}/api/checkout`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          amount,
+          currency: "INR",
+          receipt: `receipt#${Date.now()}`,
+        }),
+      });
+
+      const checkoutData: unknown = await checkoutResponse.json();
+      const checkoutRoot =
+        typeof checkoutData === "object" && checkoutData !== null
+          ? (checkoutData as Record<string, unknown>)
+          : null;
+
+      if (!checkoutResponse.ok) {
+        throw new Error(
+          typeof checkoutRoot?.message === "string"
+            ? checkoutRoot.message
+            : `Checkout failed (${checkoutResponse.status})`,
+        );
+      }
+
+      if (!checkoutRoot || checkoutRoot.ok !== true) {
+        throw new Error(
+          typeof checkoutRoot?.message === "string"
+            ? checkoutRoot.message
+            : "Unable to create payment order.",
+        );
+      }
+
+      const orderData =
+        typeof checkoutRoot.data === "object" && checkoutRoot.data !== null
+          ? (checkoutRoot.data as Record<string, unknown>)
+          : null;
+
+      if (!orderData) {
+        throw new Error("Invalid checkout response.");
+      }
+
+      const RazorpayCtor = (window as WindowWithRazorpay).Razorpay;
+      if (!RazorpayCtor) {
+        throw new Error("Razorpay SDK unavailable.");
+      }
+
+      const options: RazorpayOptions = {
+        key: razorpayKey,
+        amount:
+          typeof orderData.amount === "number" ? orderData.amount : Math.round(amount * 100),
+        currency: typeof orderData.currency === "string" ? orderData.currency : "INR",
+        name: "ShopBag",
+        order_id: typeof orderData.id === "string" ? orderData.id : "",
+        prefill: {
+          name: user?.name ?? "",
+          email: typeof checkoutRoot.email === "string" ? checkoutRoot.email : "",
+        },
+        handler: async (response) => {
+          try {
+            const verifyResponse = await fetch(`${backendUrl}/api/verifypayment`, {
+              method: "POST",
+              credentials: "include",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                amount,
+                orderId: response.razorpay_order_id,
+                paymentId: response.razorpay_payment_id,
+                signature: response.razorpay_signature,
+              }),
+            });
+
+            const verifyData: unknown = await verifyResponse.json();
+            const verifyRoot =
+              typeof verifyData === "object" && verifyData !== null
+                ? (verifyData as Record<string, unknown>)
+                : null;
+
+            if (!verifyResponse.ok || !verifyRoot || verifyRoot.ok !== true) {
+              toast.error(
+                typeof verifyRoot?.message === "string"
+                  ? verifyRoot.message
+                  : "Payment verification failed",
+              );
+              setIsCheckingOut(false);
+              return;
+            }
+
+            toast.success(
+              typeof verifyRoot.message === "string" ? verifyRoot.message : "Payment Success",
+            );
+            dispatch(clearCart());
+            onClose();
+            setIsCheckingOut(false);
+          } catch (_error) {
+            toast.error("Something went wrong");
+            setIsCheckingOut(false);
+          }
+        },
+        modal: {
+          ondismiss: () => setIsCheckingOut(false),
+        },
+      };
+
+      if (!options.order_id) {
+        throw new Error("Order ID not found.");
+      }
+
+      const razorpayWindow = new RazorpayCtor(options);
+      razorpayWindow.open();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Something went wrong";
+      toast.error(message);
+      setIsCheckingOut(false);
+    }
+  };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Your cart" scrollContent={false}>
@@ -122,10 +341,15 @@ export default function CartModal({
             <div className="grid gap-2">
               <button
                 type="button"
-                onClick={isLoggedIn ? onClose : onLoginClick}
-                className="w-full rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 cursor-pointer"
+                onClick={handleCheckout}
+                disabled={isCheckingOut}
+                className="w-full rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-70 cursor-pointer"
               >
-                {isLoggedIn ? "Checkout" : "Login to checkout"}
+                {isCheckingOut
+                  ? "Processing..."
+                  : isLoggedIn
+                    ? "Checkout"
+                    : "Login to checkout"}
               </button>
               <button
                 type="button"

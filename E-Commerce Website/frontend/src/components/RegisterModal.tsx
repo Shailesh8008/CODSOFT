@@ -19,14 +19,13 @@ export default function RegisterModal({
   const registerStatus = useAppSelector((state) => state.auth.registerStatus);
   const registerError = useAppSelector((state) => state.auth.registerError);
   const [form, setForm] = useState({
-    fname: "",
-    lname: "",
+    fullName: "",
     email: "",
     pass1: "",
     pass2: "",
   });
   const [error, setError] = useState({
-    fname: false,
+    fullName: false,
     email: false,
     pass1: false,
     pass2: false,
@@ -43,18 +42,23 @@ export default function RegisterModal({
   const isValidEmail = (email: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
+  const splitFullName = (fullName: string) => {
+    const cleaned = fullName.trim().replace(/\s+/g, " ");
+    const [fname = "", ...lnameParts] = cleaned.split(" ");
+    return { fname, lname: lnameParts.join(" ") };
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    const fname = form.fname.trim();
-    const lname = form.lname.trim();
+    const fullName = form.fullName.trim();
     const email = form.email.trim();
     const pass1 = form.pass1.trim();
     const pass2 = form.pass2.trim();
 
-    if (!fname || !email || !pass1 || !pass2) {
+    if (!fullName || !email || !pass1 || !pass2) {
       setError({
-        fname: !fname,
+        fullName: !fullName,
         email: !email,
         pass1: !pass1,
         pass2: !pass2,
@@ -78,11 +82,12 @@ export default function RegisterModal({
     }
 
     try {
+      const { fname, lname } = splitFullName(fullName);
       const message = await dispatch(
         registerUser({ fname, lname: lname || undefined, email, pass1 }),
       ).unwrap();
       toast.success(message);
-      setForm({ fname: "", lname: "", email: "", pass1: "", pass2: "" });
+      setForm({ fullName: "", email: "", pass1: "", pass2: "" });
       onClose();
       onOpenLogin();
     } catch (err) {
@@ -98,40 +103,22 @@ export default function RegisterModal({
       <form className="space-y-4" onSubmit={handleSubmit}>
         <div>
           <label
-            htmlFor="register-fname"
+            htmlFor="register-full-name"
             className="mb-1 block text-sm font-medium text-slate-700"
           >
-            First name
+            Full name
           </label>
           <input
-            id="register-fname"
-            name="fname"
+            id="register-full-name"
+            name="fullName"
             type="text"
-            value={form.fname}
+            value={form.fullName}
             onChange={handleChange}
-            placeholder="Your first name"
+            placeholder="Your full name"
             className={`w-full rounded-xl border px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none ${
-              error.fname ? "border-rose-500" : "border-slate-300"
+              error.fullName ? "border-rose-500" : "border-slate-300"
             }`}
             required
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="register-lname"
-            className="mb-1 block text-sm font-medium text-slate-700"
-          >
-            Last name (optional)
-          </label>
-          <input
-            id="register-lname"
-            name="lname"
-            type="text"
-            value={form.lname}
-            onChange={handleChange}
-            placeholder="Your last name"
-            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none"
           />
         </div>
 
