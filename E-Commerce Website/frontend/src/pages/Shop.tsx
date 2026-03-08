@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
-import { useAppSelector } from "../store/hooks";
+import { addToCart } from "../store/cartSlice";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
 
 export default function Shop() {
+  const dispatch = useAppDispatch();
   const products = useAppSelector((state) => state.products.items);
   const status = useAppSelector((state) => state.products.status);
   const error = useAppSelector((state) => state.products.error);
@@ -43,6 +45,19 @@ export default function Shop() {
   }, [products, search, selectedCategory, selectedStatus]);
 
   const isLoading = status === "idle" || status === "loading";
+
+  const handleAddToCart = (
+    product: (typeof products)[number],
+  ) => {
+    dispatch(
+      addToCart({
+        id: product.id,
+        name: product.name,
+        price: product.priceValue ?? 0,
+        imageUrl: product.imageUrl,
+      }),
+    );
+  };
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 pb-12 pt-8 sm:px-6 lg:px-8">
@@ -127,6 +142,13 @@ export default function Shop() {
                       {product.status}
                     </span>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => handleAddToCart(product)}
+                    className="mt-4 w-full rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 cursor-pointer"
+                  >
+                    Add to cart
+                  </button>
                 </article>
               ))}
             </div>

@@ -8,4 +8,4 @@ const productSchema = new Schema({
   pimage: { type: String },
 });
 
-module.exports = model("products", productSchema);
+export default model("products", productSchema);

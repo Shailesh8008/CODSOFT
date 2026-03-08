@@ -10,7 +10,6 @@ import connectDB from "./config/db";
 import apiRouter from "./routers/api";
 import userModel from "./models/user";
 
-// Connect to Database
 connectDB();
 
 app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));

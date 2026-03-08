@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useAppSelector } from "../store/hooks";
 import CartModal from "./CartModal";
 import LoginModal from "./LoginModal";
 import RegisterModal from "./RegisterModal";
 
 const navLinks = [
+  { label: "Home", to: "/" },
   { label: "Shop", to: "/shop" },
   { label: "Collections", to: "/collections" },
-  { label: "Deals", to: "/deals" },
   { label: "About", to: "/about" },
 ];
 
@@ -15,7 +16,10 @@ export default function Navbar() {
   const [isSignInOpen, setIsSignInOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const user = useAppSelector((state) => state.auth.user);
+  const cartCount = useAppSelector((state) =>
+    state.cart.items.reduce((sum, item) => sum + item.quantity, 0),
+  );
 
   const openSignIn = () => setIsSignInOpen(true);
   const closeSignIn = () => setIsSignInOpen(false);
@@ -39,10 +43,7 @@ export default function Navbar() {
     openSignIn();
   };
 
-  const handleLoginSuccess = () => {
-    setIsLoggedIn(true);
-    closeSignIn();
-  };
+  const handleLoginSuccess = () => closeSignIn();
 
   return (
     <>
@@ -69,19 +70,25 @@ export default function Navbar() {
           </ul>
 
           <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={openSignIn}
-              className="rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-900 cursor-pointer"
-            >
-              Login
-            </button>
+            {user ? (
+              <span className="rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700">
+                {user.name}
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={openSignIn}
+                className="rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-900 cursor-pointer"
+              >
+                Login
+              </button>
+            )}
             <button
               type="button"
               onClick={openCart}
               className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 cursor-pointer"
             >
-              Cart (2)
+              Cart {cartCount!=0?`(${cartCount})`:""}
             </button>
           </div>
         </nav>
@@ -101,7 +108,8 @@ export default function Navbar() {
       <CartModal
         isOpen={isCartOpen}
         onClose={closeCart}
-        isLoggedIn={isLoggedIn}
+        isLoggedIn={Boolean(user)}
+        cartCount={cartCount}
         onLoginClick={openSignInFromCart}
       />
     </>

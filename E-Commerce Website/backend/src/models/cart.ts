@@ -5,4 +5,4 @@ const cartSchema = new Schema({
   CartItems: [],
 });
 
-module.exports = model("carts", cartSchema);
+export default model("carts", cartSchema);

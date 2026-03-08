@@ -5,15 +5,22 @@ import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
 import About from "./pages/About";
 import Collections from "./pages/Collections";
-import Deals from "./pages/Deals";
 import Home from "./pages/Home";
 import Shop from "./pages/Shop";
 import { useAppDispatch, useAppSelector } from "./store/hooks";
+import { fetchCurrentUser } from "./store/authSlice";
 import { fetchProducts } from "./store/productsSlice";
 
 function App() {
   const dispatch = useAppDispatch();
+  const authStatus = useAppSelector((state) => state.auth.status);
   const productsStatus = useAppSelector((state) => state.products.status);
+
+  useEffect(() => {
+    if (authStatus === "idle") {
+      void dispatch(fetchCurrentUser());
+    }
+  }, [authStatus, dispatch]);
 
   useEffect(() => {
     if (productsStatus === "idle") {
@@ -31,7 +38,6 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/shop" element={<Shop />} />
               <Route path="/collections" element={<Collections />} />
-              <Route path="/deals" element={<Deals />} />
               <Route path="/about" element={<About />} />
             </Routes>
           </main>

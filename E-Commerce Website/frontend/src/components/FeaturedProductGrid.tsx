@@ -1,9 +1,12 @@
 import type { Product } from "../store/productsSlice";
+import { useAppDispatch } from "../store/hooks";
+import { addToCart } from "../store/cartSlice";
 
 type ProductTile = {
   id: string;
   name: string;
   price: string;
+  priceValue: number | null;
   tag: string;
   accent: string;
   imageUrl: string | null;
@@ -14,6 +17,7 @@ const fallbackProducts: ProductTile[] = [
     id: "fallback-1",
     name: "Urban Pulse Sneakers",
     price: "$129",
+    priceValue: 129,
     tag: "Best Seller",
     accent: "from-amber-200 to-orange-100",
     imageUrl: null,
@@ -22,6 +26,7 @@ const fallbackProducts: ProductTile[] = [
     id: "fallback-2",
     name: "CloudFit Smart Watch",
     price: "$199",
+    priceValue: 199,
     tag: "New",
     accent: "from-sky-200 to-cyan-100",
     imageUrl: null,
@@ -30,6 +35,7 @@ const fallbackProducts: ProductTile[] = [
     id: "fallback-3",
     name: "Minimal Desk Lamp",
     price: "$59",
+    priceValue: 59,
     tag: "Popular",
     accent: "from-emerald-200 to-teal-100",
     imageUrl: null,
@@ -38,6 +44,7 @@ const fallbackProducts: ProductTile[] = [
     id: "fallback-4",
     name: "Commuter Sling Bag",
     price: "$79",
+    priceValue: 79,
     tag: "Limited",
     accent: "from-rose-200 to-pink-100",
     imageUrl: null,
@@ -63,18 +70,36 @@ function mapProductTiles(products: Product[]): ProductTile[] {
     id: product.id,
     name: product.name,
     price: product.price,
+    priceValue: product.priceValue,
     tag: product.tag,
     accent: accents[index % accents.length],
     imageUrl: product.imageUrl,
   }));
 }
 
+function parsePrice(value: string): number {
+  const numeric = Number(value.replace(/[^\d.-]/g, ""));
+  return Number.isFinite(numeric) ? numeric : 0;
+}
+
 export default function FeaturedProductGrid({
   products,
   isLoading,
 }: FeaturedProductGridProps) {
+  const dispatch = useAppDispatch();
   const featuredProducts =
     products.length > 0 ? mapProductTiles(products) : fallbackProducts;
+
+  const handleAddToCart = (product: ProductTile) => {
+    dispatch(
+      addToCart({
+        id: product.id,
+        name: product.name,
+        price: product.priceValue ?? parsePrice(product.price),
+        imageUrl: product.imageUrl,
+      }),
+    );
+  };
 
   return (
     <section className="mt-16">
@@ -96,7 +121,11 @@ export default function FeaturedProductGrid({
             <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
               {featuredProducts[0].tag}
             </span>
-            <button className="text-sm font-semibold text-slate-600 hover:text-slate-900 cursor-pointer">
+            <button
+              type="button"
+              onClick={() => handleAddToCart(featuredProducts[0])}
+              className="text-sm font-semibold text-slate-600 hover:text-slate-900 cursor-pointer"
+            >
               + Cart
             </button>
           </div>
@@ -128,7 +157,11 @@ export default function FeaturedProductGrid({
               <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
                 {product.tag}
               </span>
-              <button className="text-sm font-semibold text-slate-600 hover:text-slate-900 cursor-pointer">
+              <button
+                type="button"
+                onClick={() => handleAddToCart(product)}
+                className="text-sm font-semibold text-slate-600 hover:text-slate-900 cursor-pointer"
+              >
                 + Cart
               </button>
             </div>

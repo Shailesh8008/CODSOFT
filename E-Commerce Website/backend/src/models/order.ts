@@ -10,4 +10,4 @@ const orderSchema = new Schema({
   createdAt: { type: Date, default: Date.now() },
 });
 
-module.exports = model("orders", orderSchema);
+export default model("orders", orderSchema);
