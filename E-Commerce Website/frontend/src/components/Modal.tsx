@@ -5,10 +5,17 @@ type ModalProps = {
   isOpen: boolean;
   onClose: () => void;
   title?: string;
+  scrollContent?: boolean;
   children: ReactNode;
 };
 
-export default function Modal({ isOpen, onClose, title, children }: ModalProps) {
+export default function Modal({
+  isOpen,
+  onClose,
+  title,
+  scrollContent = true,
+  children,
+}: ModalProps) {
   useEffect(() => {
     if (!isOpen) {
       return;
@@ -42,7 +49,7 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
       role="presentation"
     >
       <section
-        className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-xl sm:p-8"
+        className="flex max-h-[calc(100vh-2rem)] w-full max-w-md flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-xl sm:p-8"
         onClick={(event) => event.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -61,7 +68,11 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
           </div>
         ) : null}
 
-        {children}
+        {scrollContent ? (
+          <div className="overflow-y-auto pr-1">{children}</div>
+        ) : (
+          children
+        )}
       </section>
     </div>,
     document.body,

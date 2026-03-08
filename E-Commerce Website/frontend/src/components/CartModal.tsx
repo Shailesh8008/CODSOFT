@@ -37,8 +37,8 @@ export default function CartModal({
     }).format(value);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Your cart">
-      <div className="space-y-4">
+    <Modal isOpen={isOpen} onClose={onClose} title="Your cart" scrollContent={false}>
+      <div className="flex max-h-[calc(100vh-10rem)] flex-col space-y-4">
         {cartItems.length === 0 ? (
           <>
             <p className="text-sm text-slate-600">Your cart is currently empty.</p>
@@ -52,7 +52,7 @@ export default function CartModal({
           </>
         ) : (
           <>
-            <div className="max-h-72 space-y-3 overflow-y-auto pr-1">
+            <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
               {cartItems.map((item) => (
                 <article key={item.id} className="rounded-xl border border-slate-200 p-3">
                   <div className="flex items-start gap-3">

@@ -1,6 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
+import {
+  FiGrid,
+  FiHome,
+  FiInfo,
+  FiLogIn,
+  FiLogOut,
+  FiPackage,
+  FiShoppingBag,
+  FiShoppingCart,
+  FiUser,
+} from "react-icons/fi";
 import { logoutUser } from "../store/authSlice";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import CartModal from "./CartModal";
@@ -9,10 +20,10 @@ import Modal from "./Modal";
 import RegisterModal from "./RegisterModal";
 
 const navLinks = [
-  { label: "Home", to: "/" },
-  { label: "Shop", to: "/shop" },
-  { label: "Collections", to: "/collections" },
-  { label: "About", to: "/about" },
+  { label: "Home", to: "/", icon: FiHome },
+  { label: "Shop", to: "/shop", icon: FiShoppingBag },
+  { label: "Collections", to: "/collections", icon: FiGrid },
+  { label: "About", to: "/about", icon: FiInfo },
 ];
 
 export default function Navbar() {
@@ -96,28 +107,37 @@ export default function Navbar() {
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-slate-200/70 bg-white/90 backdrop-blur">
-        <nav className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        <nav className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 md:grid md:grid-cols-[1fr_auto_1fr] md:justify-normal">
           <Link
             to="/"
-            className="text-xl font-bold tracking-tight text-slate-900"
+            className="justify-self-start text-xl font-bold tracking-tight text-slate-900"
           >
             NovaCart
           </Link>
 
-          <ul className="hidden items-center gap-8 md:flex">
+          <ul className="hidden items-center gap-8 md:flex md:justify-self-center">
             {navLinks.map((link) => (
               <li key={link.label}>
                 <Link
                   to={link.to}
-                  className="text-sm font-medium text-slate-600 transition hover:text-slate-900"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition hover:text-slate-900"
                 >
+                  <link.icon className="h-4 w-4" />
                   {link.label}
                 </Link>
               </li>
             ))}
           </ul>
 
-          <div className="flex items-center gap-3">
+          <div className="justify-self-end flex items-center gap-3">
+            <button
+              type="button"
+              onClick={openCart}
+              className="inline-flex min-w-20 items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 cursor-pointer"
+            >
+              <FiShoppingCart className="h-4 w-4" />
+              Cart {cartCount != 0 ? `(${cartCount})` : ""}
+            </button>
             {user ? (
               <div ref={menuRef} className="relative">
                 <button
@@ -125,9 +145,7 @@ export default function Navbar() {
                   onClick={toggleUserMenu}
                   className="flex items-center gap-2 rounded-full border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-900 cursor-pointer"
                 >
-                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-900 text-xs font-bold uppercase text-white">
-                    {user.name.slice(0, 1)}
-                  </span>
+                  <FiUser className="h-4 w-4" />
                   <span className="hidden sm:inline">{user.name}</span>
                 </button>
 
@@ -136,22 +154,25 @@ export default function Navbar() {
                     <button
                       type="button"
                       onClick={() => placeholderAction("Dashboard")}
-                      className="w-full rounded-lg px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-100 cursor-pointer"
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-100 cursor-pointer"
                     >
+                      <FiGrid className="h-4 w-4" />
                       Dashboard
                     </button>
                     <button
                       type="button"
                       onClick={() => placeholderAction("My Orders")}
-                      className="w-full rounded-lg px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-100 cursor-pointer"
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-100 cursor-pointer"
                     >
+                      <FiPackage className="h-4 w-4" />
                       My Orders
                     </button>
                     <button
                       type="button"
                       onClick={openLogoutConfirm}
-                      className="w-full rounded-lg px-3 py-2 text-left text-sm text-rose-600 transition hover:bg-rose-50 cursor-pointer"
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-rose-600 transition hover:bg-rose-50 cursor-pointer"
                     >
+                      <FiLogOut className="h-4 w-4" />
                       Logout
                     </button>
                   </div>
@@ -161,18 +182,12 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={openSignIn}
-                className="rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-900 cursor-pointer"
+                className="inline-flex items-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-900 cursor-pointer"
               >
+                <FiLogIn className="h-4 w-4" />
                 Login
               </button>
             )}
-            <button
-              type="button"
-              onClick={openCart}
-              className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 cursor-pointer"
-            >
-              Cart {cartCount!=0?`(${cartCount})`:""}
-            </button>
           </div>
         </nav>
       </header>
