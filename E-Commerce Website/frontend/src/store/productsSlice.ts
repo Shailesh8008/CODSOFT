@@ -9,6 +9,7 @@ export type Product = {
   tag: string;
   category: string;
   status: string;
+  featured: boolean;
 };
 
 type ProductsState = {
@@ -40,6 +41,10 @@ function readString(value: unknown): string | null {
   return typeof value === "string" && value.trim().length > 0
     ? value.trim()
     : null;
+}
+
+function readBoolean(value: unknown): boolean {
+  return value === true || value === "true" || value === 1 || value === "1";
 }
 
 function formatPrice(value: unknown): string {
@@ -113,8 +118,10 @@ function normalizeProduct(raw: unknown, index: number): Product | null {
     readString(row.imageUrl) ??
     readString(row.image_url) ??
     readString(row.thumbnail);
+  const featured = readBoolean(row.featured);
 
   const tag =
+    (featured ? "Featured" : null) ??
     readString(row.category) ??
     readString(row.status) ??
     readString(row.tag) ??
@@ -134,6 +141,7 @@ function normalizeProduct(raw: unknown, index: number): Product | null {
     tag,
     category,
     status,
+    featured,
   };
 }
 

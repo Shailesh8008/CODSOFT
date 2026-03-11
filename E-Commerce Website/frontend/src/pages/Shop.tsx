@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { addToCart } from "../store/cartSlice";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 
@@ -9,7 +10,9 @@ export default function Shop() {
   const error = useAppSelector((state) => state.products.error);
 
   const [search, setSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const categoryParam = searchParams.get("category")?.trim() ?? "";
+  const [selectedCategory, setSelectedCategory] = useState(categoryParam || "all");
   const [selectedStatus, setSelectedStatus] = useState("all");
 
   const categories = useMemo(
@@ -46,6 +49,18 @@ export default function Shop() {
 
   const isLoading = status === "idle" || status === "loading";
 
+  useEffect(() => {
+    if (!categoryParam) {
+      setSelectedCategory("all");
+      return;
+    }
+
+    const match = categories.find(
+      (category) => category.toLowerCase() === categoryParam.toLowerCase(),
+    );
+    setSelectedCategory(match ?? "all");
+  }, [categories, categoryParam]);
+
   const handleAddToCart = (
     product: (typeof products)[number],
   ) => {
@@ -79,7 +94,17 @@ export default function Shop() {
           />
           <select
             value={selectedCategory}
-            onChange={(event) => setSelectedCategory(event.target.value)}
+            onChange={(event) => {
+              const value = event.target.value;
+              setSelectedCategory(value);
+              const nextParams = new URLSearchParams(searchParams);
+              if (value === "all") {
+                nextParams.delete("category");
+              } else {
+                nextParams.set("category", value);
+              }
+              setSearchParams(nextParams, { replace: true });
+            }}
             className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:border-slate-900"
           >
             <option value="all">All categories</option>
