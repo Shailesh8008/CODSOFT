@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import Skeleton from "react-loading-skeleton";
 import { Link } from "react-router-dom";
 import { useAppSelector } from "../store/hooks";
 
@@ -102,7 +103,33 @@ export default function Collections() {
         </div>
       </section>
 
-      {isLoading && <p className="mt-10 text-sm text-slate-500">Loading collections...</p>}
+      {isLoading && (
+        <section className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }, (_, index) => (
+            <article
+              key={`collection-skeleton-${index}`}
+              className="rounded-2xl border border-slate-200 p-5 shadow-sm"
+            >
+              <Skeleton height={144} borderRadius={16} baseColor="#e2e8f0" highlightColor="#f8fafc" />
+              <div className="mt-5">
+                <Skeleton width="58%" height={24} baseColor="#e2e8f0" highlightColor="#f8fafc" />
+              </div>
+              <div className="mt-2 space-y-2">
+                <Skeleton height={16} baseColor="#e2e8f0" highlightColor="#f8fafc" />
+                <Skeleton width="78%" height={16} baseColor="#e2e8f0" highlightColor="#f8fafc" />
+              </div>
+              <div className="mt-4 flex gap-2">
+                <Skeleton width={96} height={28} borderRadius={9999} baseColor="#e2e8f0" highlightColor="#f8fafc" />
+                <Skeleton width={84} height={28} borderRadius={9999} baseColor="#e2e8f0" highlightColor="#f8fafc" />
+              </div>
+              <div className="mt-4 flex items-center justify-between">
+                <Skeleton width={110} height={18} baseColor="#e2e8f0" highlightColor="#f8fafc" />
+                <Skeleton width={96} height={18} baseColor="#e2e8f0" highlightColor="#f8fafc" />
+              </div>
+            </article>
+          ))}
+        </section>
+      )}
       {error && !isLoading && <p className="mt-10 text-sm text-red-600">{error}</p>}
 
       {!isLoading && !error && (

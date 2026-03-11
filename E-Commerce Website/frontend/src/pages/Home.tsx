@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import FeaturedProductGrid from "../components/FeaturedProductGrid";
 import { useAppSelector } from "../store/hooks";
 
@@ -41,6 +42,7 @@ const testimonials = [
 export default function Home() {
   const products = useAppSelector((state) => state.products.featuredItems);
   const productsStatus = useAppSelector((state) => state.products.featuredStatus);
+  const navigate = useNavigate()
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 pb-12 pt-8 sm:px-6 lg:px-8">
@@ -59,10 +61,10 @@ export default function Home() {
             people who want quality, speed, and seamless shopping.
           </p>
           <div className="flex flex-wrap gap-3 pt-2">
-            <button className="rounded-full bg-white px-6 py-3 text-sm font-semibold active:scale-95 transition-all text-slate-900 hover:bg-slate-100 cursor-pointer">
+            <button onClick={()=>navigate("/shop")} className="rounded-full bg-white px-6 py-3 text-sm font-semibold active:scale-95 transition-all text-slate-900 hover:bg-slate-100 cursor-pointer">
               Shop now
             </button>
-            <button className="rounded-full border border-white/50 px-6 py-3 text-sm font-semibold text-white hover:border-white cursor-pointer hover:bg-white hover:text-orange-600 active:scale-95 transition-all">
+            <button onClick={()=>navigate("/collections")} className="rounded-full border border-white/50 px-6 py-3 text-sm font-semibold text-white hover:border-white cursor-pointer hover:bg-white hover:text-orange-600 active:scale-95 transition-all">
               Explore deals
             </button>
           </div>
@@ -124,7 +126,7 @@ export default function Home() {
             Refresh your setup with handpicked drops and exclusive bundles.
             Offer valid through this week.
           </p>
-          <button className="mt-6 rounded-full bg-white px-6 py-3 text-sm font-semibold text-rose-700 hover:bg-rose-50 cursor-pointer active:scale-95 transition-all">
+          <button onClick={()=>navigate("/collections")} className="mt-6 rounded-full bg-white px-6 py-3 text-sm font-semibold text-rose-700 hover:bg-rose-50 cursor-pointer active:scale-95 transition-all">
             Grab deals
           </button>
         </div>

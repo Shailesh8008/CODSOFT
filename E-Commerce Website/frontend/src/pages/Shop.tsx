@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import Skeleton from "react-loading-skeleton";
 import { useSearchParams } from "react-router-dom";
 import { addToCart } from "../store/cartSlice";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
@@ -129,7 +130,36 @@ export default function Shop() {
         </div>
       </section>
 
-      {isLoading && <p className="mt-6 text-sm text-slate-500">Loading products...</p>}
+      {isLoading && (
+        <section className="mt-6">
+          <div className="mb-4">
+            <Skeleton width={180} height={20} baseColor="#e2e8f0" highlightColor="#f8fafc" />
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {Array.from({ length: 8 }, (_, index) => (
+              <article
+                key={`shop-skeleton-${index}`}
+                className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+              >
+                <Skeleton height={160} borderRadius={12} baseColor="#e2e8f0" highlightColor="#f8fafc" />
+                <div className="mt-4">
+                  <Skeleton width="70%" height={22} baseColor="#e2e8f0" highlightColor="#f8fafc" />
+                </div>
+                <div className="mt-2">
+                  <Skeleton width="34%" height={18} baseColor="#e2e8f0" highlightColor="#f8fafc" />
+                </div>
+                <div className="mt-3 flex gap-2">
+                  <Skeleton width={88} height={24} borderRadius={9999} baseColor="#e2e8f0" highlightColor="#f8fafc" />
+                  <Skeleton width={92} height={24} borderRadius={9999} baseColor="#e2e8f0" highlightColor="#f8fafc" />
+                </div>
+                <div className="mt-5">
+                  <Skeleton height={40} borderRadius={9999} baseColor="#e2e8f0" highlightColor="#f8fafc" />
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
       {error && !isLoading && <p className="mt-6 text-sm text-red-600">{error}</p>}
 
       {!isLoading && !error && (

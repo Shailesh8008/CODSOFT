@@ -1,6 +1,7 @@
 import type { Product } from "../store/productsSlice";
 import { useAppDispatch } from "../store/hooks";
 import { addToCart } from "../store/cartSlice";
+import Skeleton from "react-loading-skeleton";
 
 type ProductTile = {
   id: string;
@@ -111,78 +112,116 @@ export default function FeaturedProductGrid({
           View all
         </button>
       </div>
-      {isLoading && (
-        <p className="mb-4 text-sm text-slate-500">Loading products...</p>
-      )}
 
-      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-6 lg:grid-rows-2">
-        <article className="rounded-3xl border border-slate-200 p-6 shadow-sm transition-all lg:col-span-3 lg:row-span-2 hover:shadow-lg hover:scale-[101%] active:scale-100">
-          <div className="flex items-center justify-between">
-            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-              {featuredProducts[0].tag}
-            </span>
-            <button
-              type="button"
-              onClick={() => handleAddToCart(featuredProducts[0])}
-              className="text-sm font-semibold text-slate-600 hover:text-slate-900 cursor-pointer"
+      {isLoading ? (
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-6 lg:grid-rows-2">
+          <article className="rounded-3xl border border-slate-200 p-6 shadow-sm lg:col-span-3 lg:row-span-2">
+            <div className="flex items-center justify-between">
+              <Skeleton width={90} height={28} borderRadius={9999} baseColor="#e2e8f0" highlightColor="#f8fafc" />
+              <Skeleton width={48} height={18} baseColor="#e2e8f0" highlightColor="#f8fafc" />
+            </div>
+            <div className="mt-7">
+              <Skeleton height={320} borderRadius={24} baseColor="#e2e8f0" highlightColor="#f8fafc" />
+            </div>
+            <div className="mt-6">
+              <Skeleton width="62%" height={28} baseColor="#e2e8f0" highlightColor="#f8fafc" />
+            </div>
+            <div className="mt-2">
+              <Skeleton width="24%" height={18} baseColor="#e2e8f0" highlightColor="#f8fafc" />
+            </div>
+          </article>
+
+          {tileSpanClasses.map((tileClass, index) => (
+            <article
+              key={`featured-skeleton-${index}`}
+              className={`rounded-3xl border border-slate-200 p-5 shadow-sm ${tileClass}`}
             >
-              + Cart
-            </button>
-          </div>
-          <div
-            className={`mt-7 h-80 rounded-2xl bg-gradient-to-br ${featuredProducts[0].accent}`}
-          >
-            {featuredProducts[0].imageUrl && (
-              <img
-                src={featuredProducts[0].imageUrl}
-                alt={featuredProducts[0].name}
-                className="h-full w-full rounded-2xl object-contain"
-              />
-            )}
-          </div>
-          <h3 className="mt-6 text-xl font-semibold text-slate-900">
-            {featuredProducts[0].name}
-          </h3>
-          <p className="mt-1 text-sm text-slate-600">
-            {featuredProducts[0].price}
-          </p>
-        </article>
-
-        {featuredProducts.slice(1).map((product, index) => (
-          <article
-            key={product.id}
-            className={`rounded-3xl border border-slate-200 p-5 shadow-sm transition hover:shadow-lg hover:scale-[101%] active:scale-100 ${tileSpanClasses[index]}`}
-          >
+              <div className="flex items-center justify-between">
+                <Skeleton width={76} height={26} borderRadius={9999} baseColor="#e2e8f0" highlightColor="#f8fafc" />
+                <Skeleton width={48} height={18} baseColor="#e2e8f0" highlightColor="#f8fafc" />
+              </div>
+              <div className="mt-5">
+                <Skeleton height={96} borderRadius={12} baseColor="#e2e8f0" highlightColor="#f8fafc" />
+              </div>
+              <div className="mt-4">
+                <Skeleton width="74%" height={22} baseColor="#e2e8f0" highlightColor="#f8fafc" />
+              </div>
+              <div className="mt-2">
+                <Skeleton width="34%" height={18} baseColor="#e2e8f0" highlightColor="#f8fafc" />
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-6 lg:grid-rows-2">
+          <article className="rounded-3xl border border-slate-200 p-6 shadow-sm transition-all lg:col-span-3 lg:row-span-2 hover:shadow-lg hover:scale-[101%] active:scale-100">
             <div className="flex items-center justify-between">
               <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-                {product.tag}
+                {featuredProducts[0].tag}
               </span>
               <button
                 type="button"
-                onClick={() => handleAddToCart(product)}
+                onClick={() => handleAddToCart(featuredProducts[0])}
                 className="text-sm font-semibold text-slate-600 hover:text-slate-900 cursor-pointer"
               >
                 + Cart
               </button>
             </div>
             <div
-              className={`mt-5 h-24 rounded-xl bg-gradient-to-br ${product.accent}`}
+              className={`mt-7 h-80 rounded-2xl bg-gradient-to-br ${featuredProducts[0].accent}`}
             >
-              {product.imageUrl && (
+              {featuredProducts[0].imageUrl && (
                 <img
-                  src={product.imageUrl}
-                  alt={product.name}
-                  className="h-full w-full rounded-xl object-contain"
+                  src={featuredProducts[0].imageUrl}
+                  alt={featuredProducts[0].name}
+                  className="h-full w-full rounded-2xl object-contain"
                 />
               )}
             </div>
-            <h3 className="mt-4 font-semibold text-slate-900">
-              {product.name}
+            <h3 className="mt-6 text-xl font-semibold text-slate-900">
+              {featuredProducts[0].name}
             </h3>
-            <p className="mt-1 text-sm text-slate-600">{product.price}</p>
+            <p className="mt-1 text-sm text-slate-600">
+              {featuredProducts[0].price}
+            </p>
           </article>
-        ))}
-      </div>
+
+          {featuredProducts.slice(1).map((product, index) => (
+            <article
+              key={product.id}
+              className={`rounded-3xl border border-slate-200 p-5 shadow-sm transition hover:shadow-lg hover:scale-[101%] active:scale-100 ${tileSpanClasses[index]}`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                  {product.tag}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleAddToCart(product)}
+                  className="text-sm font-semibold text-slate-600 hover:text-slate-900 cursor-pointer"
+                >
+                  + Cart
+                </button>
+              </div>
+              <div
+                className={`mt-5 h-24 rounded-xl bg-gradient-to-br ${product.accent}`}
+              >
+                {product.imageUrl && (
+                  <img
+                    src={product.imageUrl}
+                    alt={product.name}
+                    className="h-full w-full rounded-xl object-contain"
+                  />
+                )}
+              </div>
+              <h3 className="mt-4 font-semibold text-slate-900">
+                {product.name}
+              </h3>
+              <p className="mt-1 text-sm text-slate-600">{product.price}</p>
+            </article>
+          ))}
+        </div>
+      )}
     </section>
   );
 }
