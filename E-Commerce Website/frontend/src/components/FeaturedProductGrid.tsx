@@ -168,7 +168,7 @@ export default function FeaturedProductGrid({
               </button>
             </div>
             <div
-              className={`mt-7 h-80 rounded-2xl bg-gradient-to-br ${featuredProducts[0].accent}`}
+              className={`mt-7 h-80 rounded-2xl`}
             >
               {featuredProducts[0].imageUrl && (
                 <img
@@ -204,7 +204,7 @@ export default function FeaturedProductGrid({
                 </button>
               </div>
               <div
-                className={`mt-5 h-24 rounded-xl bg-gradient-to-br ${product.accent}`}
+                className={`mt-5 h-24 rounded-xl`}
               >
                 {product.imageUrl && (
                   <img
